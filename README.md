@@ -134,7 +134,7 @@ open, and the whole call within one request timeout (`--timeout`, 5555 ms).
 
 Node microwizard against mwm-node, with a load generator in C on cores of
 its own: [bench/README.md](bench/README.md). At 1000 calls at once over one
-connection, 1.91 M/s against 187 k/s (Node 22, microwizard 1.5.0), both on
+connection, 2.54 M/s against 189 k/s (Node 22, microwizard 1.5.0), both on
 one core.
 
 ## Regenerating the golden files

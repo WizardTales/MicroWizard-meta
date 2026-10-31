@@ -13,15 +13,15 @@ connection (closed loop), every answer checked by id and result. It reports
 its own CPU as well, so one can see when the generator itself is the limit.
 
 Measured 2026-10-31 on a Core Ultra 7 265H (P-cores 0–5, E-cores 6–13),
-Linux 7.2, 127.0.0.1:
+Linux 7.2, 127.0.0.1, with microwizard-meta 1f89586 on metalanguage 2769af7:
 
 - Server on P-cores: Node and meta with 1 carrier on core 2, 2 carriers on
   2–3, 4 on 2–5, 8 on 0–7 (there are only six P-cores).
 - Load generator on E-cores 8–13, never on the server's cores.
 - Median of 3 rounds of 2 s. Cores not isolated, other work was running on
-  the machine (load 1–12), so about ±10 %.
-- Node 18.14.2 with microwizard 1.1.1 as in the benchmark repository;
-  Node 22.22.2 with microwizard 1.5.0 measures the same (see below).
+  the machine (load 4–7), so about ±10–15 %.
+- Node 18.14.2 with microwizard 1.1.1 as in the benchmark repository, and
+  Node 22.22.2 with microwizard 1.5.0.
 - No call failed.
 
 Node runs on one core, so the fair comparison is the column
@@ -29,88 +29,70 @@ Node runs on one core, so the fair comparison is the column
 
 ### 1000 calls at once
 
-The figure from the README of microservice-benchmarks (`c=1000`).
+The figure from the README of microservice-benchmarks (`c=1000`). Rate,
+then p50 / p99:
 
 | Server | 1 connection × 1000 calls | 1000 connections × 1 call |
 |---|---|---|
-| Node 18, microwizard 1.1.1 | 169 k/s | 102 k/s |
-| Node 22, microwizard 1.5.0 | 187 k/s | 104 k/s |
-| meta, 1 carrier | 1.91 M/s | 201 k/s |
-| meta, 4 carriers | 1.82 M/s | 491 k/s |
-| meta, 8 carriers | 1.71 M/s | 506 k/s |
-
-p99:
-
-| Server | 1 connection × 1000 calls | 1000 connections × 1 call |
-|---|---|---|
-| Node 18 | 13.9 ms | 13.4 ms |
-| Node 22 | 6.3 ms | 11.5 ms |
-| meta, 1 carrier | 0.93 ms | 98.6 ms |
-| meta, 4 carriers | 1.08 ms | 98.6 ms |
-| meta, 8 carriers | 1.15 ms | 4.5 ms |
+| Node 18, microwizard 1.1.1 | 172 k/s, 5.5 / 9.7 ms | 108 k/s, 8.9 / 11.5 ms |
+| Node 22, microwizard 1.5.0 | 189 k/s, 5.1 / 6.3 ms | 115 k/s, 8.4 / 10.2 ms |
+| meta, 1 carrier | 2.54 M/s, 0.39 / 0.51 ms | 189 k/s, 5.1 / 6.2 ms |
+| meta, 4 carriers | 2.28 M/s, 0.43 / 0.97 ms | 487 k/s, 1.7 / 5.1 ms |
+| meta, 8 carriers | 2.30 M/s, 0.42 / 1.00 ms | 510 k/s, 1.9 / 3.9 ms |
 
 - One connection is always served by one carrier; more carriers do not
   help there.
 - At 1000 connections with 4 or 8 carriers the load generator is saturated
-  (93–100 % of its cores): lower bounds.
-- The 98.6 ms were `META_REHOME_MS` in the runtime: a reader that became
-  ready on a busy carrier moved to the shared queue at most once every
-  100 ms, and a saturated carrier only looks there once its own queue is
-  empty. With 8 carriers the server is not saturated, its queue runs dry,
-  and p99 falls to 4.5 ms.
-
-### After metalanguage 2769af7 (fairness)
-
-A task moves to the shared queue only when some carrier can take it from
-there; what a carrier's poll finds goes ahead of its queue only while
-nothing queued has waited 250 µs; and a connection's reader answers at most
-32 lines or 64 KiB per turn, then yields with `meta_yield` (details in
-metalanguage `doc/runtime.md`, "A saturated carrier left some readers
-waiting 100 ms"). Medians of 4 rounds, before and after built and run
-alternately:
-
-| Point | Before: rate, p50 / p99 | After: rate, p50 / p99 |
-|---|---|---|
-| 1 carrier, 1000×1 | 208 k/s, 0.03 / 101 ms | 182 k/s, 5.4 / 6.8 ms |
-| 1 carrier, 256×16 | 1.60 M/s, 0.04 / 99 ms | 1.44 M/s, 2.8 / 2.9 ms |
-| 1 carrier, 16×16 | 1.73 M/s, 0.04 / 0.19 ms | 1.57 M/s, 0.11 / 0.32 ms |
-| 1 carrier, 1×1000 | 1.86 M/s, 0.50 / 0.93 ms | 2.44 M/s, 0.40 / 0.53 ms |
-| 1 carrier, 1×1 | 55 k/s, 16 / 34 µs | 54 k/s, 17 / 35 µs |
-| 4 carriers, 1000×1 | 545 k/s, 0.35 / 47 ms | 456 k/s, 1.9 / 6.0 ms |
-| 4 carriers, 256×16 | 3.69 M/s, 0.05 / 51 ms | 3.76 M/s, 0.35 / 3.4 ms |
-| 4 carriers, 16×16 | 3.85 M/s, 0.04 / 0.21 ms | 3.95 M/s, 0.04 / 0.31 ms |
-| 4 carriers, 1×1000 | 1.77 M/s, 0.52 / 1.13 ms | 2.24 M/s, 0.43 / 0.98 ms |
-
-- Serving every connection in turn costs one carrier 10–13 % at 1000×1 and
-  256×16 – the price of no longer serving the lucky ones over and over; Node
-  does 102 k/s at p99 11–13 ms there.
-- 4 carriers at 1000×1 is limited by the load generator and varied from
-  360 k/s to 660 k/s within one build.
-- Two builds of identical code differed by up to ±15 % on this machine,
-  hence the alternating runs.
+  (91–100 % of its cores): lower bounds.
+- A connection's reader answers at most 32 lines or 64 KiB per turn and
+  then yields, and a carrier serves what its poll finds ahead of its queue
+  only while nothing queued has waited 250 µs (metalanguage
+  `doc/runtime.md`, "A saturated carrier left some readers waiting 100
+  ms"). So every connection gets its turn, as in Node's event loop.
 
 ### Connections × calls in flight
 
-| Connections × calls | Node 18, mw 1.1.1 | meta, 1 carrier | meta, 2 carriers | meta, 4 carriers | meta, 8 carriers |
+| Connections × calls | Node 22, mw 1.5.0 | meta, 1 carrier | meta, 2 carriers | meta, 4 carriers | meta, 8 carriers |
 |---|---|---|---|---|---|
-| 1×1 | 35 k/s | 54 k/s | 50 k/s | 50 k/s | 50 k/s |
-| 1×16 | 158 k/s | 607 k/s | 574 k/s | 560 k/s | 564 k/s |
-| 1×64 | 176 k/s | 1.29 M/s | 1.20 M/s | 1.17 M/s | 1.18 M/s |
-| 16×1 | 125 k/s | 193 k/s | 353 k/s | 514 k/s | 485 k/s |
-| 16×16 | 173 k/s | 1.73 M/s | 2.74 M/s | 3.91 M/s | 4.50 M/s |
-| 16×64 | 187 k/s | 2.89 M/s | 4.61 M/s | 6.31 M/s | 7.55 M/s |
-| 64×1 | 126 k/s | 197 k/s | 325 k/s | 506 k/s | 528 k/s |
-| 64×16 | 177 k/s | 1.74 M/s | 2.77 M/s | 3.73 M/s | 5.22 M/s |
-| 64×64 | 186 k/s | 2.82 M/s | 4.41 M/s | 5.95 M/s | 7.89 M/s |
-| 256×1 | 123 k/s | 200 k/s | 343 k/s | 514 k/s | 527 k/s |
-| 256×16 | 176 k/s | 1.72 M/s | 2.74 M/s | 4.00 M/s | 5.05 M/s |
-| 256×64 | 181 k/s | 2.64 M/s | 4.36 M/s | 6.10 M/s | 7.88 M/s |
+| 1×1 | 36 k/s | 51 k/s | 49 k/s | 49 k/s | 48 k/s |
+| 1×16 | 172 k/s | 543 k/s | 543 k/s | 550 k/s | 556 k/s |
+| 1×64 | 184 k/s | 1.83 M/s | 1.90 M/s | 1.86 M/s | 1.84 M/s |
+| 16×1 | 126 k/s | 163 k/s | 305 k/s | 490 k/s | 456 k/s |
+| 16×16 | 179 k/s | 1.36 M/s | 2.40 M/s | 3.99 M/s | 4.48 M/s |
+| 16×64 | 192 k/s | 1.96 M/s | 3.17 M/s | 5.43 M/s | 6.74 M/s |
+| 64×1 | 124 k/s | 165 k/s | 291 k/s | 492 k/s | 525 k/s |
+| 64×16 | 180 k/s | 1.43 M/s | 2.52 M/s | 3.94 M/s | 5.15 M/s |
+| 64×64 | 191 k/s | 1.87 M/s | 3.22 M/s | 5.20 M/s | 7.07 M/s |
+| 256×1 | 126 k/s | 165 k/s | 310 k/s | 481 k/s | 517 k/s |
+| 256×16 | 179 k/s | 1.43 M/s | 2.39 M/s | 3.79 M/s | 5.08 M/s |
+| 256×64 | 183 k/s | 1.86 M/s | 3.20 M/s | 5.31 M/s | 6.99 M/s |
+
+p99:
+
+| Connections × calls | Node 22, mw 1.5.0 | meta, 1 carrier | meta, 2 carriers | meta, 4 carriers | meta, 8 carriers |
+|---|---|---|---|---|---|
+| 1×1 | 0.06 ms | 0.04 ms | 0.04 ms | 0.04 ms | 0.04 ms |
+| 1×16 | 0.18 ms | 0.05 ms | 0.07 ms | 0.07 ms | 0.07 ms |
+| 1×64 | 0.56 ms | 0.08 ms | 0.08 ms | 0.09 ms | 0.09 ms |
+| 16×1 | 0.24 ms | 0.29 ms | 0.29 ms | 0.11 ms | 0.12 ms |
+| 16×16 | 1.74 ms | 0.32 ms | 0.32 ms | 0.31 ms | 0.25 ms |
+| 16×64 | 5.90 ms | 1.83 ms | 4.85 ms | 2.62 ms | 0.67 ms |
+| 64×1 | 1.00 ms | 0.43 ms | 0.37 ms | 0.43 ms | 0.34 ms |
+| 64×16 | 6.16 ms | 0.77 ms | 0.72 ms | 0.67 ms | 1.34 ms |
+| 64×64 | 23 ms | 9.70 ms | 24 ms | 7.60 ms | 1.97 ms |
+| 256×1 | 2.69 ms | 1.70 ms | 1.47 ms | 3.21 ms | 1.05 ms |
+| 256×16 | 25 ms | 3.15 ms | 3.28 ms | 3.41 ms | 4.00 ms |
+| 256×64 | 671 ms | 25 ms | 67 ms | 53 ms | 7.86 ms |
 
 - Server CPU per call (busy time of its cores, softirq included): Node
-  5.4–5.9 µs, meta with 1 carrier 0.35–0.58 µs at 16 or more in flight.
+  5.2–5.8 µs with 16 or more in flight; meta with 1 carrier 0.5–0.75 µs
+  from 1×64 and 16×16 on, 1.8 µs at 1×16.
 - With 1 call per connection and 4/8 carriers, and with 8 carriers from 16
-  in flight on, the load generator is close to its limit (65–100 %): lower
+  in flight on, the load generator is close to its limit (60–100 %): lower
   bounds.
+- With 64 calls in flight on 2 or 4 carriers, p99 still reaches 8–67 ms
+  while p50 stays at 0.04–0.05 ms: deep pipelines over several carriers
+  still leave a few calls waiting. Open.
 
 Raw data, one JSON line per run: `results/2026-10-31/matrix.jsonl` and
 `results/2026-10-31/1000.jsonl`. `loadgen-table.py` turns them into tables.
