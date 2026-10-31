@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include <meta_tasks.h>
+#include <meta_text.h>
 
 #include "echo.h"
 #include "service.h"
@@ -84,22 +85,27 @@ static mwm_answer_t burn(json_t args) {
 
 void mwm_echoServe(const char *role) {
 
-  static const char *names[] = {"ping", "fail", "throw", "overload", "slow",
-                                "delay", "burn"};
-  mwm_handler_t handlers[] = {ping, fail, throwing, overload, slow, delay, burn};
-
   /* the first four never park and run in the reader; slow and delay sleep,
      burn holds its carrier for a millisecond: a task each */
-  static const int inline_[] = {1, 1, 1, 1, 0, 0, 0};
+  static const struct {
+    const char *cmd;
+    mwm_handler_t handler;
+    int inline_;
+  } commands[] = {{"ping", ping, 1},      {"fail", fail, 1},
+                  {"throw", throwing, 1}, {"overload", overload, 1},
+                  {"slow", slow, 0},      {"delay", delay, 0},
+                  {"burn", burn, 0}};
 
-  for (int i = 0; i < 7; ++i) {
+  for (size_t i = 0; i < countof(commands); ++i) {
 
     char pattern[128];
+    text_t written = TEXT`role:${role},cmd:${commands[i].cmd}`;
 
-    snprintf(pattern, sizeof pattern, "role:%s,cmd:%s", role, names[i]);
-    if (inline_[i])
-      mwm_addInline(pattern, handlers[i]);
+    written.into(pattern, sizeof pattern);
+
+    if (commands[i].inline_)
+      mwm_addInline(pattern, commands[i].handler);
     else
-      mwm_add(pattern, handlers[i]);
+      mwm_add(pattern, commands[i].handler);
   }
 }

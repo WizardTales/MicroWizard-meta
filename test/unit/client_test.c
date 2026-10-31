@@ -23,6 +23,7 @@
 #include <meta_json.h>
 #include <meta_tasks.h>
 #include <meta_tcp.h>
+#include <meta_text.h>
 #include <meta_time.h>
 
 #include "client.h"
@@ -75,38 +76,37 @@ task servers;
 
 static char *answerTo(json_t asked, int server, mode_t_ mode, int calls) {
 
-  char *id = asked.id.owned();
-  char *args = asked.args.isNothing() ? strdup("null")
-                                             : asked.args.owned();
-  size_t room = strlen(id) + strlen(args) + 256;
-  char *out = malloc(room);
+  json_t id = asked.id;
 
-  if (mode == OVER || (mode == ONCE_OVER && calls == 1))
-    snprintf(out, room,
-             "{\"id\":%s,\"k\":\"res\",\"sync\":true,\"error\":{\"message\":"
-             "\"overloaded\",\"name\":\"Error\",\"details\":{\"message\":"
-             "\"retry_later_err_overload\"}}}",
-             id);
-  else if (mode == CLOSING)
-    snprintf(out, room,
-             "{\"id\":%s,\"k\":\"res\",\"sync\":true,\"error\":{\"message\":"
-             "\"retry_later_err_overload\",\"name\":\"Error\"}}",
-             id);
-  else if (mode == THROW)
-    snprintf(out, room,
-             "{\"id\":%s,\"k\":\"res\",\"sync\":true,\"error\":{\"message\":"
-             "\"thrown on purpose\",\"code\":\"E_PURPOSE\",\"name\":\"Error\"}}",
-             id);
-  else
-    snprintf(out, room,
-             "{\"id\":%s,\"k\":\"res\",\"sync\":true,\"res\":{\"code\":200,"
-             "\"msg\":{\"echo\":%s,\"from\":\"s%d\"}}}",
-             id, args, server);
+  if (mode == OVER || (mode == ONCE_OVER && calls == 1)) {
+    json_t out = {id: id, k: "res", sync: true,
+                  error: {message: "overloaded", name: "Error",
+                          details: {message: "retry_later_err_overload"}}};
+    return out.owned();
+  }
 
-  free(args);
-  free(id);
+  if (mode == CLOSING) {
+    json_t out = {id: id, k: "res", sync: true,
+                  error: {message: "retry_later_err_overload", name: "Error"}};
+    return out.owned();
+  }
 
-  return out;
+  if (mode == THROW) {
+    json_t out = {id: id, k: "res", sync: true,
+                  error: {message: "thrown on purpose", code: "E_PURPOSE",
+                          name: "Error"}};
+    return out.owned();
+  }
+
+  char from[16];
+  text_t named = TEXT`s${server}`;
+
+  named.into(from, sizeof from);
+
+  json_t out = {id: id, k: "res", sync: true,
+                res: {code: 200, msg: {echo: asked.args, from: from}}};
+
+  return out.owned();
 }
 
 static void fakeConn(tcp_t *peer, int server, mode_t_ mode) {
@@ -137,8 +137,10 @@ static void fakeConn(tcp_t *peer, int server, mode_t_ mode) {
       out = answerTo(asked, server, mode, calls);
 
       if (mode == JUNK) {
-        char *id = asked.id.owned();
-        char line[256];
+        json_t late = {id: asked.id, k: "res", sync: false, res: "async"};
+        char *line = late.owned();
+
+        late.release();
 
         peer.writeLine("this is not json");
         peer.writeLine("null");
@@ -149,9 +151,8 @@ static void fakeConn(tcp_t *peer, int server, mode_t_ mode) {
         peer.writeLine("{\"k\":\"res\",\"id\":null,\"res\":1}");
         peer.writeLine("{\"k\":\"res\",\"id\":\"nobody-asked\",\"res\":1}");
         peer.writeLine("{\"k\":\"res\",\"id\":12345,\"res\":1}");
-        snprintf(line, sizeof line, "{\"id\":%s,\"k\":\"res\",\"sync\":false,\"res\":\"async\"}", id);
         peer.writeLine(line);
-        free(id);
+        free(line);
       }
 
       peer.writeLine(out);
@@ -308,9 +309,7 @@ static void act(outcome_t *o, const char *pattern, const char *args) {
   json_t in = meta_toJSON(args);
   long began = meta_nowMs();
   mwm_settled_t got = mwm_act(pattern, in);
-  char *text = got.value.isNothing()
-                   ? strdup("undefined")
-                   : yyjson_mut_val_write(got.value._node, 0, NULL);
+  char *text = got.value.isNothing() ? strdup("undefined") : got.value.owned();
 
   o->rejected = got.rejected;
   o->ms = meta_nowMs() - began;

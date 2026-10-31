@@ -333,22 +333,20 @@ static int byAttemptsThenOrder(const void *a, const void *b) {
 static size_t takeUpdates(swim_t *self, long bytesAvailable,
                           const update_t **parts, size_t room) {
 
-  const update_t **order;
+  const update_t *[] order;
   size_t taken = 0;
   size_t count = self->updates.count;
 
   if (count == 0)
     return 0;
 
-  order = (const update_t **)malloc(count * sizeof *order);
+  for (u in self->updates)
+    if (!order.push(u)) {
+      order.release();
+      return 0;
+    }
 
-  if (order == NULL)
-    return 0;
-
-  for (size_t at = 0; at < count; ++at)
-    order[at] = &self->updates[at];
-
-  qsort(order, count, sizeof *order, byAttemptsThenOrder);
+  qsort(order.items, count, sizeof order[0], byAttemptsThenOrder);
 
   for (size_t at = 0; at < count && taken < room; ++at) {
 
@@ -364,7 +362,7 @@ static size_t takeUpdates(swim_t *self, long bytesAvailable,
     }
   }
 
-  free(order);
+  order.release();
 
   return taken;
 }
@@ -822,93 +820,73 @@ static void onSuspect(swim_t *self, const char *host, int64_t incarnation,
   onUpdate(self, &data);
 }
 
-/** all(hasLocal, hasFaulty): members, then us, then the faulty ones. */
-static size_t allData(swim_t *self, int withLocal, int withFaulty,
-                      mp_buf_t **out) {
+typedef mp_buf_t[] bufs_t;
 
-  size_t count = self->members.count + (withLocal ? 1 : 0) +
-                 (withFaulty ? self->faulty.count : 0);
-  size_t at = 0;
-  mp_buf_t *list = (mp_buf_t *)calloc(count + 1, sizeof *list);
+/** One Update for a member, at the end of `list`. */
+static void addData(bufs_t *list, const swim_member_t *m) {
 
-  if (list == NULL) {
-    *out = NULL;
-    return 0;
-  }
+  mp_buf_t one = {0};
 
-  for (entry in self->members) {
-    list[at].byte(SWIM_UPDATE);
-    writeData(&list[at], entry->value);
-    at += 1;
-  }
+  one.byte(SWIM_UPDATE);
+  writeData(&one, m);
 
-  if (withLocal) {
-    list[at].byte(SWIM_UPDATE);
-    writeData(&list[at], &self->local);
-    at += 1;
-  }
-
-  if (withFaulty) {
-    for (entry in self->faulty) {
-      list[at].byte(SWIM_UPDATE);
-      writeData(&list[at], entry->value);
-      at += 1;
-    }
-  }
-
-  *out = list;
-
-  return at;
+  if (!list->push(one))
+    one.release();
 }
 
-static void freeList(mp_buf_t *list, size_t count) {
+/** all(hasLocal, hasFaulty): members, then us, then the faulty ones. */
+static void allData(swim_t *self, int withLocal, int withFaulty, bufs_t *list) {
 
-  if (list == NULL)
-    return;
+  for (entry in self->members)
+    addData(list, entry->value);
 
-  for (size_t at = 0; at < count; ++at)
-    list[at].release();
+  if (withLocal)
+    addData(list, &self->local);
 
-  free(list);
+  if (withFaulty)
+    for (entry in self->faulty)
+      addData(list, entry->value);
+}
+
+static void freeList(bufs_t *list) {
+
+  for (b in *list)
+    b->release();
+
+  list->release();
 }
 
 /** Membership.onSync: take the sender in, then tell it everything we know. */
 static void onSync(swim_t *self, const swim_member_t *data) {
 
-  mp_buf_t *list;
-  size_t count;
+  bufs_t list;
 
   updateAlive(self, data);
 
-  count = allData(self, 1, 1, &list);
-  sendMessages(self, data->host, list, count);
-  freeList(list, count);
+  allData(self, 1, 1, &list);
+  sendMessages(self, data->host, list.items, list.count);
+  freeList(&list);
 }
 
 /** Membership.sync: a Sync with us, and an Update for everyone else we know. */
 static void syncTo(swim_t *self, const char *const *hosts, int hostCount) {
 
-  mp_buf_t *others;
-  size_t count = allData(self, 0, 1, &others);
-  mp_buf_t *list = (mp_buf_t *)calloc(count + 1, sizeof *list);
+  bufs_t list;
+  mp_buf_t sync = {0};
 
-  if (list != NULL) {
+  sync.byte(SWIM_SYNC);
+  writeData(&sync, &self->local);
 
-    list[0].byte(SWIM_SYNC);
-    writeData(&list[0], &self->local);
+  if (list.push(sync)) {
 
-    for (size_t at = 0; at < count; ++at)
-      list[1 + at] = others[at];
+    allData(self, 0, 1, &list);
 
     for (int h = 0; h < hostCount; ++h)
-      sendMessages(self, hosts[h], list, count + 1);
+      sendMessages(self, hosts[h], list.items, list.count);
+  } else
+    sync.release();
 
-    list[0].release();
-    free(list);
-  }
-
-  /* the buffers moved into list belong to `others` still */
-  freeList(others, count);
+  freeList(&list);
 }
 
 /* --------------------------------------------------------- failure detector */
@@ -958,20 +936,17 @@ static void pingReq(swim_t *self, const char *host, int64_t incarnation,
 
   size_t count = self->members.count;
   size_t want = (size_t)self->options.pingReqGroupSize;
-  const char **hosts;
-  size_t at = 0;
+  const char *[] hosts;
   uint32_t group;
 
   if (count == 0)
     return;
 
-  hosts = (const char **)malloc(count * sizeof *hosts);
-
-  if (hosts == NULL)
-    return;
-
   for (entry in self->members)
-    hosts[at++] = entry->key;
+    if (!hosts.push(entry->key)) {
+      hosts.release();
+      return;
+    }
 
   group = ++self->groups;
   timerAdd(self, now + self->options.pingReqTimeout, TIMER_PING_REQ, 0, group,
@@ -995,7 +970,7 @@ static void pingReq(swim_t *self, const char *host, int64_t incarnation,
     sendSeq(self, relay, SWIM_PING_REQ, seq, host);
   }
 
-  free(hosts);
+  hosts.release();
 }
 
 static void clearSeq(swim_t *self, uint32_t seq) {
@@ -1393,15 +1368,11 @@ void swim_start(swim_t *self, long now) {
 
 void swim_join(swim_t *self, const char *const *hosts, int count, long now) {
 
-  const char **others = (const char **)malloc(((size_t)count + 1) * sizeof *others);
-  int kept = 0;
+  const char *[] others;
 
   self->joining.release();
   timersClear(self, TIMER_JOIN_CHECK, 0, NULL);
   timersClear(self, TIMER_JOIN_TIMEOUT, 0, NULL);
-
-  if (others == NULL)
-    return;
 
   for (int i = 0; i < count; ++i) {
 
@@ -1412,18 +1383,18 @@ void swim_join(swim_t *self, const char *const *hosts, int count, long now) {
 
     copyHost(h.host, hosts[i], strlen(hosts[i]));
     self->joining.push(h);
-    others[kept++] = hosts[i];
+    others.push(hosts[i]);
   }
 
-  if (kept == 0) {
-    free(others);
+  if (others.count == 0) {
+    others.release();
     self->joinPending = 0;
     emit(self, SWIM_EVENT_JOINED, NULL);
     return;
   }
 
-  syncTo(self, others, kept);
-  free(others);
+  syncTo(self, others.items, (int)others.count);
+  others.release();
 
   self->joinPending = 1;
   timerAdd(self, now + self->options.joinTimeout, TIMER_JOIN_TIMEOUT, 0, 0, NULL, 0);

@@ -76,7 +76,8 @@ static int runActE(void) {
 static int runActEMix(void) {
   json_t args = {a: 5, b: 3};
   char pattern[64];
-  snprintf(pattern, sizeof pattern, "cmd:add,a:%ld", args.a.number());
+  /* snprintf, not TEXT: this line is measured, and TEXT was 10 ns slower */
+  snprintf(pattern, sizeof pattern, "cmd:add,a:%ld", (long)args.a);
   int good = check(mwm_actE(pattern, args));
   args.release();
   return good;
@@ -99,21 +100,24 @@ int main(int argc, char **argv) {
 
   double seconds = argc > 1 ? atof(argv[1]) : 5;
   int rounds = argc > 2 ? atoi(argv[2]) : 1;
-  static const char *names[] = {"MetaAct", "MetaActStr", "MetaActE",
-                                "MetaActEMix", "MetaRespond"};
-  test_t tests[] = {runAct, runActStr, runActE, runActEMix, runRespond};
+  static const struct {
+    const char *name;
+    test_t run;
+  } tests[] = {{"MetaAct", runAct},         {"MetaActStr", runActStr},
+               {"MetaActE", runActE},       {"MetaActEMix", runActEMix},
+               {"MetaRespond", runRespond}};
 
   mwm_add("cmd:add,a:5", bench_add);
 
   for (int r = 0; r < rounds; ++r) {
-    for (int i = 0; i < 5; ++i) {
+    for (size_t i = 0; i < countof(tests); ++i) {
 
       long count = 0;
       double began;
       double took;
 
-      if (!tests[i]()) {
-        fprintf(stderr, "%s: wrong answer\n", names[i]);
+      if (!tests[i].run()) {
+        fprintf(stderr, "%s: wrong answer\n", tests[i].name);
         return 1;
       }
 
@@ -121,18 +125,18 @@ int main(int argc, char **argv) {
       began = nowS();
       while (nowS() - began < seconds / 10)
         for (int k = 0; k < 1000; ++k)
-          tests[i]();
+          tests[i].run();
 
       began = nowS();
       do {
         for (int k = 0; k < 1000; ++k)
-          tests[i]();
+          tests[i].run();
         count += 1000;
       } while ((took = nowS() - began) < seconds);
 
       printf("{\"suite\":\"local\",\"test\":\"%s\",\"round\":%d,\"calls\":%ld,"
              "\"s\":%.3f,\"rps\":%.0f,\"avgNs\":%.1f}\n",
-             names[i], r, count, took, count / took, took * 1e9 / count);
+             tests[i].name, r, count, took, count / took, took * 1e9 / count);
       fflush(stdout);
     }
   }

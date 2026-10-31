@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <meta_text.h>
+
 #include "service.h"
 
 typedef struct {
@@ -63,11 +65,9 @@ int mwm_addInline(const char *pattern, mwm_handler_t handler) {
 /** Whether the handler a message matched was added as one that never parks. */
 static int runsInline(mwm_handler_t handler) {
 
-  for (size_t i = routes.count; i > 0; --i)
-    if (routes.items[i - 1].handler == handler)
-      return routes.items[i - 1].inline_;
+  route_t *route = routes.findLast(r, r->handler == handler);
 
-  return 0;
+  return route != NULL ? route->inline_ : 0;
 }
 
 void mwm_clear(void) {
@@ -133,67 +133,48 @@ static mwm_handler_t findForPattern(const char *pattern) {
  */
 static char *answerLine(json_t asked, int thrown, json_t value, int stacked) {
 
-  yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
-  yyjson_mut_val *out = yyjson_mut_obj(doc);
-  json_t id = asked.id;
-  json_t sync = asked.sync;
+  json_t out = {id: asked.id, k: "res"};
   char *text;
 
-  yyjson_mut_doc_set_root(doc, out);
-
-  yyjson_mut_obj_add(out, yyjson_mut_str(doc, "id"),
-                     id._node != NULL ? yyjson_mut_val_mut_copy(doc, id._node)
-                                      : yyjson_mut_null(doc));
-  yyjson_mut_obj_add(out, yyjson_mut_str(doc, "k"), yyjson_mut_str(doc, "res"));
-
-  if (sync._node != NULL)
-    yyjson_mut_obj_add(out, yyjson_mut_str(doc, "sync"),
-                       yyjson_mut_val_mut_copy(doc, sync._node));
+  if (strcmp(asked.sync.kind(), "nothing") != 0)
+    out.sync = asked.sync;
 
   if (thrown) {
 
-    yyjson_mut_val *error = value._node != NULL &&
-                                    yyjson_mut_is_obj(value._node)
-                                ? yyjson_mut_val_mut_copy(doc, value._node)
-                                : yyjson_mut_obj(doc);
+    if (strcmp(value.kind(), "object") == 0)
+      out.error = value;
+    else
+      out.error = {};
 
-    if (yyjson_mut_obj_get(error, "message") == NULL)
-      yyjson_mut_obj_add(error, yyjson_mut_str(doc, "message"),
-                         yyjson_mut_str(doc, ""));
-    if (yyjson_mut_obj_get(error, "name") == NULL)
-      yyjson_mut_obj_add(error, yyjson_mut_str(doc, "name"),
-                         yyjson_mut_str(doc, "Error"));
+    /* a name for the error inside out: what is written to it is written there */
+    json_t error = out.error;
+
+    if (strcmp(error.message.kind(), "nothing") == 0)
+      error.message = "";
+    if (strcmp(error.name.kind(), "nothing") == 0)
+      error.name = "Error";
 
     /**
      * transfer.js sends err.stack, and the caller's Error takes it over - so
      * that is what an inspect of the rejection shows. A handler here has no
      * JS stack; it gets the first line one would have, and where it was.
      */
-    if (stacked && yyjson_mut_obj_get(error, "stack") == NULL) {
+    if (stacked && strcmp(error.stack.kind(), "nothing") == 0) {
 
       char stack[512];
-      json_t args = asked.args;
-      const char *where = !args.isNothing() ? "args" : asked.p.text();
+      const char *where = !asked.args.isNothing() ? "args" : asked.p.text();
+      text_t first = TEXT`${error.name.text()}: ${error.message.text()}
+    at mwm-node (${where})`;
 
-      snprintf(stack, sizeof stack, "%s: %s\n    at mwm-node (%s)",
-               yyjson_mut_get_str(yyjson_mut_obj_get(error, "name")),
-               yyjson_mut_get_str(yyjson_mut_obj_get(error, "message")) != NULL
-                   ? yyjson_mut_get_str(yyjson_mut_obj_get(error, "message"))
-                   : "",
-               where);
-      yyjson_mut_obj_add(error, yyjson_mut_str(doc, "stack"),
-                         yyjson_mut_strcpy(doc, stack));
+      first.into(stack, sizeof stack);
+      error.stack = stack;
     }
 
-    yyjson_mut_obj_add(out, yyjson_mut_str(doc, "error"), error);
+  } else if (strcmp(value.kind(), "nothing") != 0)
+    out.res = value;
 
-  } else if (value._node != NULL) {
-    yyjson_mut_obj_add(out, yyjson_mut_str(doc, "res"),
-                       yyjson_mut_val_mut_copy(doc, value._node));
-  }
-
-  text = yyjson_mut_write(doc, 0, NULL);
-  yyjson_mut_doc_free(doc);
+  text = out.owned();
+  out.release();
 
   return text;
 }

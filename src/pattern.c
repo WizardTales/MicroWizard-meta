@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <meta_text.h>
+
 #include "pattern.h"
 
 typedef struct node_s node_t;
@@ -16,14 +18,13 @@ typedef struct {
   node_t *child;
 } edge_t;
 
+typedef edge_t[] edges_t;
+
 struct node_s {
-  void *value; /* f: NULL where no pin ends - held[0] */
-  void **held;  /* fl: what was added here, the last added first */
-  int heldCount;
-  edge_t *exact; /* n */
-  int exactCount;
-  edge_t *wild;  /* s */
-  int wildCount;
+  void *value;   /* f: NULL where no pin ends - held[0] */
+  void *[] held; /* fl: what was added here, the last added first */
+  edges_t exact; /* n */
+  edges_t wild;  /* s */
 };
 
 struct mwm_pins_s {
@@ -108,18 +109,6 @@ static int nextMatch(const char **at, match_t *m) {
   return 0;
 }
 
-static char *copyOf(const char *from, size_t length) {
-
-  char *out = (char *)malloc(length + 1);
-
-  if (out != NULL) {
-    memcpy(out, from, length);
-    out[length] = 0;
-  }
-
-  return out;
-}
-
 /* --------------------------------------------------------------- parts */
 
 void mwm_partsInit(mwm_parts_t *parts) { memset(parts, 0, sizeof *parts); }
@@ -166,7 +155,7 @@ int mwm_partsFromPattern(mwm_parts_t *parts, const char *pattern) {
   match_t m;
 
   while (nextMatch(&at, &m))
-    if (!partsTake(parts, copyOf(m.whole, m.wholeLength)))
+    if (!partsTake(parts, strndup(m.whole, m.wholeLength)))
       return 0;
 
   return 1;
@@ -277,7 +266,7 @@ META_OWNS char *mwm_jsText(yyjson_mut_val *node) {
 
   switch (yyjson_mut_get_type(node)) {
   case YYJSON_TYPE_STR:
-    return copyOf(yyjson_mut_get_str(node), yyjson_mut_get_len(node));
+    return strndup(yyjson_mut_get_str(node), yyjson_mut_get_len(node));
   case YYJSON_TYPE_BOOL:
     return strdup(yyjson_mut_get_bool(node) ? "true" : "false");
   case YYJSON_TYPE_NUM:
@@ -377,7 +366,12 @@ META_OWNS json_t mwm_patternObject(const char *pattern) {
 
   yyjson_mut_doc_set_root(doc, object);
 
-  /* o[t[1]] = t[2]: a key already there keeps its place, takes the value */
+  /**
+   * o[t[1]] = t[2]: a key already there keeps its place, takes the value.
+   * That is `object[key] = value` in meta, which wants both NUL-terminated -
+   * two copies per pair on every act with a pattern, measured at 3 % of one
+   * in bench-local; these take the lengths.
+   */
   while (nextMatch(&at, &m)) {
 
     yyjson_mut_val *name = yyjson_mut_strncpy(doc, m.key, m.keyLength);
@@ -412,8 +406,10 @@ META_OWNS char *mwm_patternKey(const char *pattern) {
   if (out != NULL) {
     at = out;
     *at = 0;
-    for (int i = 0; i < parts.count; ++i)
-      at += sprintf(at, "%s%s", i != 0 ? "," : "", parts.items[i]);
+    for (int i = 0; i < parts.count; ++i) {
+      text_t piece = TEXT`${i != 0 ? "," : ""}${parts.items[i]}`;
+      at += piece.into(at, room - (size_t)(at - out));
+    }
   }
 
   mwm_partsFree(&parts);
@@ -429,21 +425,21 @@ mwm_pins_t *mwm_pinsNew(void) {
 
 static void nodeFree(node_t *node) {
 
-  for (int i = 0; i < node->exactCount; ++i) {
-    nodeFree(node->exact[i].child);
-    free(node->exact[i].child);
-    free(node->exact[i].label);
+  for (e in node->exact) {
+    nodeFree(e->child);
+    free(e->child);
+    free(e->label);
   }
 
-  for (int i = 0; i < node->wildCount; ++i) {
-    nodeFree(node->wild[i].child);
-    free(node->wild[i].child);
-    free(node->wild[i].label);
+  for (e in node->wild) {
+    nodeFree(e->child);
+    free(e->child);
+    free(e->label);
   }
 
-  free(node->exact);
-  free(node->wild);
-  free(node->held);
+  node->exact.release();
+  node->wild.release();
+  node->held.release();
 }
 
 void mwm_pinsFree(mwm_pins_t *pins) {
@@ -455,43 +451,34 @@ void mwm_pinsFree(mwm_pins_t *pins) {
   free(pins);
 }
 
-static node_t *childOf(edge_t *edges, int count, const char *label) {
+static node_t *childOf(const edges_t *edges, const char *label) {
 
-  for (int i = 0; i < count; ++i)
-    if (strcmp(edges[i].label, label) == 0)
-      return edges[i].child;
+  edge_t *found = edges->find(e, strcmp(e->label, label) == 0);
 
-  return NULL;
+  return found != NULL ? found->child : NULL;
 }
 
-static node_t *childMade(edge_t **edges, int *count, const char *label) {
+static node_t *childMade(edges_t *edges, const char *label) {
 
-  node_t *child = childOf(*edges, *count, label);
-  edge_t *grown;
+  node_t *child = childOf(edges, label);
+  edge_t edge;
 
   if (child != NULL)
     return child;
 
-  grown = (edge_t *)realloc(*edges, (size_t)(*count + 1) * sizeof **edges);
-
-  if (grown == NULL)
-    return NULL;
-
-  *edges = grown;
   child = (node_t *)calloc(1, sizeof *child);
 
   if (child == NULL)
     return NULL;
 
-  grown[*count].label = strdup(label);
+  edge.label = strdup(label);
+  edge.child = child;
 
-  if (grown[*count].label == NULL) {
+  if (edge.label == NULL || !edges->push(edge)) {
+    free(edge.label);
     free(child);
     return NULL;
   }
-
-  grown[*count].child = child;
-  ++*count;
 
   return child;
 }
@@ -522,195 +509,154 @@ static void sortSteps(step_t *steps, int count) {
   }
 }
 
-/** A pin's steps, sorted as convertPin sorts them; NULL without memory. */
-static step_t *stepsOf(const char *pattern, int *made) {
+typedef step_t[] steps_t;
+
+/** A pin's steps, sorted as convertPin sorts them; 0 without memory. */
+static int stepsOf(const char *pattern, steps_t *steps) {
 
   const char *at = pattern != NULL ? pattern : "";
-  step_t *steps;
-  int count = 0;
   match_t m;
 
-  *made = 0;
+  while (nextMatch(&at, &m)) {
 
-  while (nextMatch(&at, &m))
-    ++count;
-
-  steps = (step_t *)calloc((size_t)count + 1, sizeof *steps);
-
-  if (steps == NULL)
-    return NULL;
-
-  at = pattern != NULL ? pattern : "";
-
-  while (*made < count && nextMatch(&at, &m)) {
+    step_t step;
 
     /* t[2] !== '*': exact as the whole match, a wildcard as the key */
     if (m.valueLength == 1 && m.value[0] == '*') {
-      steps[*made].p = copyOf(m.key, m.keyLength);
-      steps[*made].exact = 0;
+      step.p = strndup(m.key, m.keyLength);
+      step.exact = 0;
     } else {
-      steps[*made].p = copyOf(m.whole, m.wholeLength);
-      steps[*made].exact = 1;
+      step.p = strndup(m.whole, m.wholeLength);
+      step.exact = 1;
     }
 
-    if (steps[*made].p == NULL) {
-      for (int i = 0; i < *made; ++i)
-        free(steps[i].p);
-      free(steps);
-      *made = 0;
-      return NULL;
+    if (step.p == NULL || !steps->push(step)) {
+      free(step.p);
+      return 0;
     }
-
-    ++*made;
   }
 
-  sortSteps(steps, *made);
+  sortSteps(steps->items, (int)steps->count);
 
-  return steps;
+  return 1;
 }
 
-static void stepsFree(step_t *steps, int count) {
+static void stepsFree(steps_t *steps) {
 
-  for (int i = 0; i < count; ++i)
-    free(steps[i].p);
+  for (step in *steps)
+    free(step->p);
 
-  free(steps);
+  steps->release();
 }
 
 /** Takes value out of what a node holds; f is the last added of the rest. */
 static void unhold(node_t *node, void *value) {
 
-  int kept = 0;
+  size_t kept = 0;
 
-  for (int i = 0; i < node->heldCount; ++i)
-    if (node->held[i] != value)
-      node->held[kept++] = node->held[i];
+  for (h in node->held)
+    if (*h != value)
+      node->held[kept++] = *h;
 
-  node->heldCount = kept;
+  node->held.count = kept;
   node->value = kept > 0 ? node->held[0] : NULL;
 }
 
 int mwm_pinsAdd(mwm_pins_t *pins, const char *pattern, void *value) {
 
-  int count;
-  step_t *steps = stepsOf(pattern, &count);
+  steps_t steps;
   node_t *before = &pins->root;
-  void **grown;
 
-  if (steps == NULL)
+  if (!stepsOf(pattern, &steps)) {
+    stepsFree(&steps);
     return 0;
+  }
 
-  for (int i = 0; i < count && before != NULL; ++i)
-    before = steps[i].exact
-                 ? childMade(&before->exact, &before->exactCount, steps[i].p)
-                 : childMade(&before->wild, &before->wildCount, steps[i].p);
+  for (step in steps) {
+    before = step->exact ? childMade(&before->exact, step->p)
+                         : childMade(&before->wild, step->p);
+    if (before == NULL)
+      break;
+  }
 
-  stepsFree(steps, count);
+  stepsFree(&steps);
 
   if (before == NULL)
     return 0;
 
   /* before.f = f; before.fl.unshift(f) - once each, the newest first */
   unhold(before, value);
-  grown = (void **)realloc(before->held,
-                           (size_t)(before->heldCount + 1) * sizeof *grown);
 
-  if (grown == NULL)
+  if (!before->held.push(value))
     return 0;
 
-  memmove(grown + 1, grown, (size_t)before->heldCount * sizeof *grown);
-  grown[0] = value;
-  before->held = grown;
-  ++before->heldCount;
+  memmove(&before->held[1], &before->held[0],
+          (before->held.count - 1) * sizeof before->held[0]);
+  before->held[0] = value;
   before->value = value;
 
   return 1;
 }
 
-static int edgeAt(const edge_t *edges, int count, const node_t *child) {
+/** Drops the edge at `at` and its empty child. */
+static void edgeDrop(edges_t *edges, edge_t *at) {
 
-  for (int i = 0; i < count; ++i)
-    if (edges[i].child == child)
-      return i;
+  node_t *child = at->child;
 
-  return -1;
-}
-
-/** Drops the i-th edge and its empty child. */
-static void edgeDrop(edge_t *edges, int *count, int i) {
-
-  node_t *child = edges[i].child;
-
-  free(edges[i].label);
-  free(child->exact);
-  free(child->wild);
-  free(child->held);
+  free(at->label);
+  child->exact.release();
+  child->wild.release();
+  child->held.release();
   free(child);
-  memmove(edges + i, edges + i + 1, (size_t)(*count - i - 1) * sizeof *edges);
-  --*count;
+  memmove(at, at + 1, (size_t)(edges->items + edges->count - at - 1) * sizeof *at);
+  edges->count -= 1;
 }
 
 int mwm_pinsRemove(mwm_pins_t *pins, const char *pattern, void *value) {
 
-  int count;
-  step_t *steps = stepsOf(pattern, &count);
-  node_t **path;
-  int depth = 0;
+  steps_t steps;
+  node_t *[] path;
 
-  if (steps == NULL)
-    return 0;
-
-  path = (node_t **)calloc((size_t)count + 1, sizeof *path);
-
-  if (path == NULL) {
-    stepsFree(steps, count);
+  if (!stepsOf(pattern, &steps)) {
+    stepsFree(&steps);
     return 0;
   }
 
-  path[0] = &pins->root;
+  path.push(&pins->root);
 
-  for (int i = 0; i < count; ++i) {
+  for (step in steps) {
 
-    node_t *at = path[depth];
-    node_t *next = steps[i].exact ? childOf(at->exact, at->exactCount, steps[i].p)
-                                  : childOf(at->wild, at->wildCount, steps[i].p);
+    node_t *at = path[path.count - 1];
+    node_t *next = step->exact ? childOf(&at->exact, step->p)
+                               : childOf(&at->wild, step->p);
 
-    if (next == NULL) {
-      free(path);
-      stepsFree(steps, count);
+    if (next == NULL || !path.push(next)) {
+      path.release();
+      stepsFree(&steps);
       return 0;
     }
-
-    path[++depth] = next;
   }
 
-  unhold(path[depth], value);
+  unhold(path[path.count - 1], value);
 
   /* #dropPin: up from the leaf, every node with neither a pin nor a branch */
-  for (int i = depth; i > 0; --i) {
+  for (size_t i = path.count - 1; i > 0; --i) {
 
     node_t *child = path[i];
     node_t *parent = path[i - 1];
+    edge_t *edge;
 
-    if (child->value != NULL || child->exactCount > 0 || child->wildCount > 0)
+    if (child->value != NULL || child->exact.count > 0 || child->wild.count > 0)
       break;
 
-    {
-      int exact = edgeAt(parent->exact, parent->exactCount, child);
-
-      if (exact >= 0)
-        edgeDrop(parent->exact, &parent->exactCount, exact);
-      else {
-        int wild = edgeAt(parent->wild, parent->wildCount, child);
-
-        if (wild >= 0)
-          edgeDrop(parent->wild, &parent->wildCount, wild);
-      }
-    }
+    if ((edge = parent->exact.find(e, e->child == child)) != NULL)
+      edgeDrop(&parent->exact, edge);
+    else if ((edge = parent->wild.find(e, e->child == child)) != NULL)
+      edgeDrop(&parent->wild, edge);
   }
 
-  free(path);
-  stepsFree(steps, count);
+  path.release();
+  stepsFree(&steps);
 
   return 1;
 }
@@ -749,14 +695,14 @@ static void walk(walk_t *w, const node_t *node, int pairs, int exact) {
 
     const node_t *child;
 
-    if (node->exactCount > 0)
+    if (node->exact.count > 0)
       for (int i = w->from[k]; i < w->to[k]; ++i)
         if (w->keyOf[i] == k &&
-            (child = childOf(node->exact, node->exactCount, w->parts[i])) != NULL)
+            (child = childOf(&node->exact, w->parts[i])) != NULL)
           walk(w, child, pairs + 1, exact + 1);
 
-    if (node->wildCount > 0 &&
-        (child = childOf(node->wild, node->wildCount, w->keys[k])) != NULL)
+    if (node->wild.count > 0 &&
+        (child = childOf(&node->wild, w->keys[k])) != NULL)
       walk(w, child, pairs + 1, exact);
   }
 }
@@ -817,7 +763,7 @@ void *mwm_pinsMatch(const mwm_pins_t *pins, mwm_parts_t *parts) {
         }
 
       if (!known)
-        w.keys[w.keyCount++] = copyOf(parts->items[i], length);
+        w.keys[w.keyCount++] = strndup(parts->items[i], length);
     }
 
     qsort(w.keys, (size_t)w.keyCount, sizeof w.keys[0], byKey);

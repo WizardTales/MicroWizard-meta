@@ -58,20 +58,27 @@ static mesh_peer_t *peerAt(const mesh_t *self, size_t at) {
   return self->peers->all[at];
 }
 
+/** Where the peer under an identifier$ sits in the table, or NULL. */
+static mesh_peer_t **placeOf(const mesh_t *self, const char *identifier) {
+
+  if (self->peers == NULL)
+    return NULL;
+
+  return self->peers->all.find(p, strcmp((*p)->identifier, identifier) == 0);
+}
+
 static long indexOf(const mesh_t *self, const char *identifier) {
 
-  for (size_t i = 0; i < countOf(self); ++i)
-    if (strcmp(peerAt(self, i)->identifier, identifier) == 0)
-      return (long)i;
+  mesh_peer_t **at = placeOf(self, identifier);
 
-  return -1;
+  return at != NULL ? (long)(at - self->peers->all.items) : -1;
 }
 
 const mesh_peer_t *mesh_find(const mesh_t *self, const char *identifier) {
 
-  long at = indexOf(self, identifier);
+  mesh_peer_t **at = placeOf(self, identifier);
 
-  return at < 0 ? NULL : peerAt(self, (size_t)at);
+  return at != NULL ? *at : NULL;
 }
 
 /** Takes the peer at `at` out of the table, tells, and frees it. */
@@ -217,7 +224,7 @@ void mesh_update(mesh_t *self, const swim_member_t *m) {
     return;
 
   if (m->state == SWIM_ALIVE)
-    addNode(self, m, identifier, meta["v$"].number());
+    addNode(self, m, identifier, meta["v$"]);
   else if (m->state == SWIM_FAULTY)
     removeNode(self, m, identifier);
 }

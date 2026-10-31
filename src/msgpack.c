@@ -7,7 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <meta_text.h>
+
 #include "msgpack.h"
+
+/* meta_text.h's `str(x)` is a macro for a hole, and str is a method here */
+#undef str
 
 /* ------------------------------------------------------------------ buffer */
 
@@ -809,10 +814,9 @@ static yyjson_mut_val *build(yyjson_mut_doc *doc, mp_reader_t *r, int depth) {
 
         if (!numeric(r, &kind, &u, &s, &d))
           return NULL;
-        if (kind == 'u')
-          snprintf(digits, sizeof digits, "%llu", (unsigned long long)u);
-        else
-          snprintf(digits, sizeof digits, "%lld", (long long)s);
+        text_t written = kind == 'u' ? TEXT`${u}` : TEXT`${s}`;
+
+        written.into(digits, sizeof digits);
         key = yyjson_mut_strcpy(doc, digits);
       } else {
         fail(r, "a map key that is neither a str nor an integer");
@@ -944,6 +948,15 @@ int mp_encode(mp_buf_t *into, json_t value) {
 
 /* -------------------------------------------------------------- typed dump */
 
+/** A short piece of the dump, formatted. */
+static void formatted(mp_buf_t *text, text_t piece) {
+
+  char out[64];
+
+  piece.into(out, sizeof out);
+  text->text(out);
+}
+
 /** JSON.stringify's escaping, which is what mpdump.js writes a str with. */
 static void quoted(mp_buf_t *text, const char *at, size_t size) {
 
@@ -952,7 +965,6 @@ static void quoted(mp_buf_t *text, const char *at, size_t size) {
   for (size_t i = 0; i < size; ++i) {
 
     unsigned char c = (unsigned char)at[i];
-    char escape[8];
 
     switch (c) {
     case '"':
@@ -977,10 +989,9 @@ static void quoted(mp_buf_t *text, const char *at, size_t size) {
       text->text("\\t");
       break;
     default:
-      if (c < 0x20) {
-        snprintf(escape, sizeof escape, "\\u%04x", c);
-        text->text(escape);
-      } else
+      if (c < 0x20)
+        formatted(text, TEXT`\\u${zeroed(hex(c), 4)}`);
+      else
         text->byte(c);
     }
   }
@@ -991,21 +1002,17 @@ static void quoted(mp_buf_t *text, const char *at, size_t size) {
 /** A whole number as one, anything else as its bits - nothing to round. */
 static void floating(mp_buf_t *text, double value) {
 
-  char out[40];
-
   if (value == floor(value) && fabs(value) <= 9007199254740991.0) {
     if (value == 0)
-      snprintf(out, sizeof out, "f:0");
+      text->text("f:0");
     else
-      snprintf(out, sizeof out, "f:%.0f", value);
+      formatted(text, TEXT`f:${fixed(value, 0)}`);
   } else {
     uint64_t bits;
 
     memcpy(&bits, &value, sizeof bits);
-    snprintf(out, sizeof out, "f:0x%016llx", (unsigned long long)bits);
+    formatted(text, TEXT`f:0x${zeroed(hex(bits), 16)}`);
   }
-
-  text->text(out);
 }
 
 static void hexOf(mp_buf_t *text, const uint8_t *bytes, size_t size) {
@@ -1020,7 +1027,6 @@ static void hexOf(mp_buf_t *text, const uint8_t *bytes, size_t size) {
 
 static int dumpValue(mp_reader_t *r, mp_buf_t *text, int depth) {
 
-  char out[40];
   uint32_t count;
   const char *s;
   const uint8_t *bytes;
@@ -1050,13 +1056,10 @@ static int dumpValue(mp_reader_t *r, mp_buf_t *text, int depth) {
       return 0;
     if (kind == 'd')
       floating(text, d);
-    else {
-      if (kind == 'u')
-        snprintf(out, sizeof out, "u:%llu", (unsigned long long)u);
-      else
-        snprintf(out, sizeof out, "%s:%lld", i < 0 ? "i" : "u", (long long)i);
-      text->text(out);
-    }
+    else if (kind == 'u')
+      formatted(text, TEXT`u:${u}`);
+    else
+      formatted(text, TEXT`${i < 0 ? "i" : "u"}:${i}`);
     return 1;
   case MP_STR:
     if (!r->str(&s, &count))
@@ -1075,8 +1078,7 @@ static int dumpValue(mp_reader_t *r, mp_buf_t *text, int depth) {
     if (type == 0 && count == 1 && bytes[0] == 0)
       text->text("nil");
     else {
-      snprintf(out, sizeof out, "ext:%d:", type);
-      text->text(out);
+      formatted(text, TEXT`ext:${type}:`);
       hexOf(text, bytes, count);
     }
     return 1;
@@ -1124,8 +1126,6 @@ int mp_dump(const void *data, size_t len, mp_buf_t *text) {
 
 static int dumpNode(yyjson_mut_val *node, mp_buf_t *text, int depth) {
 
-  char out[40];
-
   if (node == NULL || depth > 64)
     return 0;
 
@@ -1139,21 +1139,18 @@ static int dumpNode(yyjson_mut_val *node, mp_buf_t *text, int depth) {
   case YYJSON_TYPE_NUM:
     switch (yyjson_mut_get_subtype(node)) {
     case YYJSON_SUBTYPE_UINT:
-      snprintf(out, sizeof out, "u:%llu",
-               (unsigned long long)yyjson_mut_get_uint(node));
-      break;
+      formatted(text, TEXT`u:${yyjson_mut_get_uint(node)}`);
+      return 1;
     case YYJSON_SUBTYPE_SINT: {
       long long v = (long long)yyjson_mut_get_sint(node);
 
-      snprintf(out, sizeof out, "%s:%lld", v < 0 ? "i" : "u", v);
-      break;
+      formatted(text, TEXT`${v < 0 ? "i" : "u"}:${v}`);
+      return 1;
     }
     default:
       floating(text, yyjson_mut_get_real(node));
       return 1;
     }
-    text->text(out);
-    return 1;
   case YYJSON_TYPE_STR:
     quoted(text, yyjson_mut_get_str(node), yyjson_mut_get_len(node));
     return 1;

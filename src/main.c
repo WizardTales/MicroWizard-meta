@@ -99,6 +99,7 @@
 #include <meta_net.h>
 #include <meta_tasks.h>
 #include <meta_tcp.h>
+#include <meta_text.h>
 
 #include "client.h"
 #include "echo.h"
@@ -217,7 +218,6 @@ static void addBases(config_t *config, const char *list) {
   for (char *item = strtok_r(copy, ",", &save); item != NULL;
        item = strtok_r(NULL, ",", &save)) {
 
-    char base[128];
     const char *colon = strrchr(item, ':');
 
     while (*item == ' ')
@@ -226,14 +226,14 @@ static void addBases(config_t *config, const char *list) {
     if (*item == 0)
       continue;
 
-    if (item[0] == ':')
-      snprintf(base, sizeof base, "%s%s", DEFAULT_HOST, item);
-    else if (colon == NULL)
-      snprintf(base, sizeof base, "%s:%d", item, DEFAULT_PORT);
-    else
-      snprintf(base, sizeof base, "%s", item);
-
-    config->bases.push(strdup(base));
+    if (item[0] == ':') {
+      text_t base = TEXT`${DEFAULT_HOST}${item}`;
+      config->bases.push(base.owned());
+    } else if (colon == NULL) {
+      text_t base = TEXT`${item}:${DEFAULT_PORT}`;
+      config->bases.push(base.owned());
+    } else
+      config->bases.push(strdup(item));
   }
 
   free(copy);
@@ -464,59 +464,36 @@ static void writeMeta(node_t *node, listen_t *listen, mp_buf_t *out) {
 
 /* ---------------------------------------------------- the mesh, as sneeze */
 
-/** Text as a JSON string, for the event lines; the caller frees it. */
-static char *jsonQuotedOf(const char *text) {
+/** One event line on stdout, as JSON. */
+static void eventLine(json_t line) {
 
-  size_t room = 3;
-  char *out;
-  char *at;
+  char *text = line.owned();
 
-  for (const char *c = text; *c != 0; ++c)
-    room += (unsigned char)*c < 0x20 || *c == '"' || *c == '\\' ? 6 : 1;
+  if (text == NULL)
+    return;
 
-  out = (char *)malloc(room);
-
-  if (out == NULL)
-    return NULL;
-
-  at = out;
-  *at++ = '"';
-
-  for (const char *c = text; *c != 0; ++c) {
-    if (*c == '"' || *c == '\\') {
-      *at++ = '\\';
-      *at++ = *c;
-    } else if ((unsigned char)*c < 0x20)
-      at += sprintf(at, "\\u%04x", (unsigned char)*c);
-    else
-      *at++ = *c;
-  }
-
-  *at++ = '"';
-  *at = 0;
-
-  return out;
+  printf("%s\n", text);
+  fflush(stdout);
+  free(text);
 }
 
 static void event(listen_t *listen, const char *what, const mesh_peer_t *peer,
                   json_t meta) {
 
-  char *pin = NULL;
   json_t config = meta.config;
+  char tcp[96];
+  text_t where = TEXT`${config.host.text()}:${(long)config.port}`;
 
-  pin = jsonQuotedOf(config.pin.at(0).text());
+  where.into(tcp, sizeof tcp);
 
-  if (pin == NULL)
-    return;
+  json_t line = {ev: what, t: wallMs(), listen: listen->index,
+                 id: peer->identifier, swim: peer->host,
+                 pin: config.pin.at(0).text(), tcp: tcp,
+                 instance: meta.instance.text(),
+                 incarnation: (long long)peer->incarnation};
 
-  printf("{\"ev\":\"%s\",\"t\":%ld,\"listen\":%d,\"id\":\"%s\",\"swim\":\"%s\","
-         "\"pin\":%s,\"tcp\":\"%s:%ld\",\"instance\":\"%s\","
-         "\"incarnation\":%lld}\n",
-         what, wallMs(), listen->index, peer->identifier, peer->host, pin,
-         config.host.text(), config.port.number(),
-         meta.instance.text(), (long long)peer->incarnation);
-  fflush(stdout);
-  free(pin);
+  eventLine(line);
+  line.release();
 }
 
 /**
@@ -550,9 +527,10 @@ static void swimEvent(void *context, swim_event_t what, const swim_member_t *m) 
   switch (what) {
   case SWIM_EVENT_JOINED:
     if (!listen->joined && node->config.events) {
-      printf("{\"ev\":\"joined\",\"t\":%ld,\"listen\":%d}\n", wallMs(),
-             listen->index);
-      fflush(stdout);
+      json_t line = {ev: "joined", t: wallMs(), listen: listen->index};
+
+      eventLine(line);
+      line.release();
     }
     listen->joined = 1;
     break;
@@ -598,23 +576,18 @@ static void checkBases(listen_t *listen, long now) {
 static void rejoin(listen_t *listen, long now) {
 
   node_t *node = listen->node;
-  const char **hosts;
-  size_t at = 0;
+  const char *[] hosts;
 
   if (listen->rejoinAt < 0 || now < listen->rejoinAt)
     return;
 
   listen->rejoinAt = -1;
-  hosts = (const char **)malloc((node->config.bases.count + 1) * sizeof *hosts);
-
-  if (hosts == NULL)
-    return;
 
   for (b in node->config.bases)
-    hosts[at++] = *b;
+    hosts.push(*b);
 
-  swim_join(listen->swim, hosts, (int)at, now);
-  free(hosts);
+  swim_join(listen->swim, hosts.items, (int)hosts.count, now);
+  hosts.release();
 }
 
 /* ------------------------------------------------------------- the loop */
@@ -651,7 +624,9 @@ static void receive(listen_t *listen) {
     if (meta_addressText(&from, ip, sizeof ip, &port) != 0)
       continue;
 
-    snprintf(host, sizeof host, "%s:%d", ip, port);
+    text_t named = TEXT`${ip}:${port}`;
+
+    named.into(host, sizeof host);
     swim_receive(listen->swim, datagram, (size_t)got, host, meta_monotonicMs());
   }
 }
@@ -980,31 +955,25 @@ static void acceptAll(@scope all, tcpListener_t *server, long *running,
 /** One outcome line: the call's tag, how long it took, what it settled with. */
 static void tell(json_t asked, long ms, int rejected, json_t got) {
 
-  char *tag = asked.tag.isNothing() ? strdup("null")
-                                           : yyjson_mut_val_write(asked.tag._node, 0, NULL);
-  char *value = got.isNothing() ? NULL : yyjson_mut_val_write(got._node, 0, NULL);
-  size_t room = strlen(tag) + (value != NULL ? strlen(value) : 0) + 128;
-  char *line = (char *)malloc(room);
+  json_t line = {ev: rejected ? "error" : "result", tag: asked.tag, ms: ms};
+  char *text;
 
-  if (line != NULL) {
+  /* an error is always there, a result only when it is not undefined */
+  if (rejected)
+    line.error = got;
+  else if (!got.isNothing())
+    line.result = got;
 
-    if (rejected)
-      snprintf(line, room, "{\"ev\":\"error\",\"tag\":%s,\"ms\":%ld,\"error\":%s}\n",
-               tag, ms, value != NULL ? value : "null");
-    else if (value != NULL)
-      snprintf(line, room, "{\"ev\":\"result\",\"tag\":%s,\"ms\":%ld,\"result\":%s}\n",
-               tag, ms, value);
-    else
-      snprintf(line, room, "{\"ev\":\"result\",\"tag\":%s,\"ms\":%ld}\n", tag, ms);
+  text = line.owned();
+  line.release();
 
-    /* one write per line: the callers' lines do not interleave */
-    fputs(line, stdout);
-    fflush(stdout);
-    free(line);
-  }
+  if (text == NULL)
+    return;
 
-  free(value);
-  free(tag);
+  /* one call per line: the callers' lines do not interleave */
+  printf("%s\n", text);
+  fflush(stdout);
+  free(text);
 }
 
 /** One call from stdin, in a task of its own: made, and its outcome told. */
@@ -1113,9 +1082,11 @@ static int openListen(node_t *node, int index) {
     listen->port = 40000 + (int)(r % 10000);
   }
 
-  snprintf(listen->identifier, sizeof listen->identifier, "%s~%s~%ld",
-           node->instance, listen->pin, started);
-  snprintf(local, sizeof local, "%s:%d", node->config.host, listen->port);
+  text_t identifier = TEXT`${node->instance}~${listen->pin}~${started}`;
+  text_t address = TEXT`${node->config.host}:${listen->port}`;
+
+  identifier.into(listen->identifier, sizeof listen->identifier);
+  address.into(local, sizeof local);
 
   listen->fd = meta_udpOpen(node->config.host, listen->port, 0);
 
@@ -1162,11 +1133,17 @@ static int openListen(node_t *node, int index) {
       listen->pin, node->tagged, listen->listenPort);
 
   if (node->config.events) {
-    printf("{\"ev\":\"started\",\"t\":%ld,\"listen\":%d,\"swim\":\"%s\","
-           "\"id\":\"%s\",\"instance\":\"%s\",\"pin\":\"%s\",\"tcp\":\"%s:%d\"}\n",
-           wallMs(), index, local, listen->identifier, node->instance,
-           listen->pin, node->config.host, listen->listenPort);
-    fflush(stdout);
+    char tcp[96];
+    text_t where = TEXT`${node->config.host}:${listen->listenPort}`;
+
+    where.into(tcp, sizeof tcp);
+
+    json_t line = {ev: "started", t: wallMs(), listen: index, swim: local,
+                   id: listen->identifier, instance: node->instance,
+                   pin: listen->pin, tcp: tcp};
+
+    eventLine(line);
+    line.release();
   }
 
   swim_start(listen->swim, meta_monotonicMs());
@@ -1224,7 +1201,9 @@ int main(int argc, char **argv) {
 
   srand((unsigned int)(started ^ getpid()));
   makeInstance(node.instance);
-  snprintf(node.tagged, sizeof node.tagged, "mc~%s", node.config.tag);
+  text_t tagged = TEXT`mc~${node.config.tag}`;
+
+  tagged.into(node.tagged, sizeof node.tagged);
 
   for (int i = 0; i < node.config.echoCount; ++i)
     mwm_echoServe(node.config.echo[i]);

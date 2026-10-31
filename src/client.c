@@ -51,6 +51,7 @@
 #include <meta_json.h>
 #include <meta_tasks.h>
 #include <meta_tcp.h>
+#include <meta_text.h>
 #include <meta_time.h>
 
 #include "client.h"
@@ -187,8 +188,7 @@ struct group_t {
 
 struct state_t {
   mwm_client_options_t options;
-  char **ownPins;
-  int ownPinCount;
+  char *[] ownPins;
 
   group_t *[] groups;      /* oldest first */
   targets_t retired;
@@ -281,59 +281,56 @@ static int byText(const void *a, const void *b) {
  * identifier$. That is the target's id, which is what keeps a member that
  * is announced twice from being a target twice.
  */
-static char *targetId(yyjson_mut_val *config, const char *pin,
-                      const char *identifier) {
+static char *targetId(json_t config, const char *pin, const char *identifier) {
 
-  char *parts[64];
-  int count = 0;
+  char *[] parts;
   size_t room = strlen(identifier) + 2;
   char *out;
   char *at;
-  yyjson_mut_obj_iter it;
-  yyjson_mut_val *key;
 
-  yyjson_mut_obj_iter_init(config, &it);
+  for (entry in config) {
 
-  while ((key = yyjson_mut_obj_iter_next(&it)) != NULL && count < 63) {
-
-    const char *name = yyjson_mut_get_str(key);
+    const char *name = entry.keyOf();
     char *value;
-    char part[600];
 
     if (strcmp(name, "pin") == 0 || strcmp(name, "pins") == 0 ||
         strchr(name, '$') != NULL)
       continue;
 
     /* String(): a primitive as `${value}` writes it */
-    if ((value = mwm_jsText(yyjson_mut_obj_iter_get_val(key))) == NULL)
+    if ((value = mwm_jsText(entry._node)) == NULL)
       continue;
 
-    snprintf(part, sizeof part, "%s:%s", name, value);
+    text_t part = TEXT`${name}:${value}`;
+
+    parts.push(part.owned());
     free(value);
-    parts[count++] = strdup(part);
   }
 
-  {
-    char part[600];
+  text_t pinned = TEXT`pin:${pin}`;
 
-    snprintf(part, sizeof part, "pin:%s", pin);
-    parts[count++] = strdup(part);
-  }
+  parts.push(pinned.owned());
 
-  qsort(parts, (size_t)count, sizeof parts[0], byText);
+  qsort(parts.items, parts.count, sizeof parts[0], byText);
 
-  for (int i = 0; i < count; ++i)
-    room += strlen(parts[i]) + 1;
+  for (p in parts)
+    room += strlen(*p) + 1;
 
   out = (char *)malloc(room);
   at = out;
 
-  for (int i = 0; i < count; ++i) {
-    at += sprintf(at, "%s%s", i != 0 ? "," : "", parts[i]);
+  for (size_t i = 0; i < parts.count; ++i) {
+
+    text_t piece = TEXT`${i != 0 ? "," : ""}${parts[i]}`;
+
+    at += piece.into(at, room - (size_t)(at - out));
     free(parts[i]);
   }
 
-  sprintf(at, "~%s", identifier);
+  text_t tail = TEXT`~${identifier}`;
+
+  tail.into(at, room - (size_t)(at - out));
+  parts.release();
 
   return out;
 }
@@ -354,12 +351,27 @@ static int dialable(const state_t *st, const char *host) {
 
 static void event(const state_t *st, const char *what, const target_t *t) {
 
+  char tcp[80];
+  char *text;
+
   if (!st->options.events)
     return;
 
-  printf("{\"ev\":\"%s\",\"t\":%ld,\"pin\":\"%s\",\"id\":\"%s\",\"tcp\":\"%s:%d\"}\n",
-         what, wallMs(), t->pin, t->id, t->host, t->port);
+  text_t where = TEXT`${t->host}:${t->port}`;
+
+  where.into(tcp, sizeof tcp);
+
+  json_t line = {ev: what, t: wallMs(), pin: t->pin, id: t->id, tcp: tcp};
+
+  text = line.owned();
+  line.release();
+
+  if (text == NULL)
+    return;
+
+  printf("%s\n", text);
   fflush(stdout);
+  free(text);
 }
 
 /**
@@ -598,21 +610,20 @@ static void member(state_t *st, int added, const char *identifier,
 
   config = meta.config;
   pinned = config.pin;
-  pin = pinned.count() > 0 && pinned._node != NULL && yyjson_mut_is_arr(pinned._node)
+  pin = strcmp(pinned.kind(), "array") == 0 && pinned.count() > 0
             ? pinned.at(0).text()
             : pinned.text();
 
   if (pin[0] == 0 || strcmp(pin, "null:true") == 0)
     return;
 
-  for (int i = 0; i < st->ownPinCount; ++i)
-    if (strcmp(st->ownPins[i], pin) == 0)
-      return;
-
-  if (config._node == NULL || !yyjson_mut_is_obj(config._node))
+  if (st->ownPins.find(p, strcmp(*p, pin) == 0) != NULL)
     return;
 
-  id = targetId(config._node, pin, identifier);
+  if (strcmp(config.kind(), "object") != 0)
+    return;
+
+  id = targetId(config, pin, identifier);
   key = mwm_patternKey(pin);
 
   if (key == NULL) {
@@ -745,13 +756,9 @@ static void member(state_t *st, int added, const char *identifier,
 
 static char *requestLine(const char *id, const char *rest) {
 
-  size_t room = strlen(id) + strlen(rest) + 16;
-  char *line = (char *)malloc(room);
+  text_t line = TEXT`{"id":"${id}"${rest}`;
 
-  if (line != NULL)
-    snprintf(line, room, "{\"id\":\"%s\"%s", id, rest);
-
-  return line;
+  return line.owned();
 }
 
 /** The buffer, bigger - or NULL, and the buffer gone. */
@@ -914,21 +921,19 @@ static void answer(side_t *s, conn_t *c, const char *text, size_t length,
 
   s->traffic = 1;
 
-  if (got._node == NULL || !yyjson_mut_is_obj(got._node)) {
+  if (strcmp(got.kind(), "object") != 0) {
     dropped(s, "invalid_res", text, now);
     got.release();
     return;
   }
 
   /* the keepalive's answer: traffic, and nothing else */
-  if (got.h._node != NULL && yyjson_mut_is_num(got.h._node) &&
-      got.h.real() == 2) {
+  if (strcmp(got.h.kind(), "number") == 0 && got.h.real() == 2) {
     got.release();
     return;
   }
 
-  if (strcmp(got.k, "res") != 0 ||
-      got.k._node == NULL || !yyjson_mut_is_str(got.k._node)) {
+  if (strcmp(got.k.kind(), "string") != 0 || strcmp(got.k, "res") != 0) {
     dropped(s, "invalid_kind_res", text, now);
     got.release();
     return;
@@ -936,7 +941,7 @@ static void answer(side_t *s, conn_t *c, const char *text, size_t length,
 
   id = got.id;
 
-  if (id._node != NULL && yyjson_mut_is_null(id._node)) {
+  if (strcmp(id.kind(), "null") == 0) {
     dropped(s, "no_message_id", text, now);
     got.release();
     return;
@@ -961,7 +966,7 @@ static void answer(side_t *s, conn_t *c, const char *text, size_t length,
    * on the channel by now. An id that is not a string never matches one we
    * sent.
    */
-  if (id._node != NULL && yyjson_mut_is_str(id._node)) {
+  if (strcmp(id.kind(), "string") == 0) {
 
     if ((p = s->waiting.get(id.text())) == NULL) {
       drain(s, c);
@@ -1588,17 +1593,9 @@ int mwm_clientStart(const mwm_client_options_t *options) {
   if (st == NULL)
     return 0;
 
-  st->ownPins = (char **)calloc((size_t)options->ownPinCount + 1, sizeof *st->ownPins);
-
-  if (st->ownPins == NULL) {
-    free(st);
-    return 0;
-  }
-
   for (int i = 0; i < options->ownPinCount; ++i)
-    st->ownPins[i] = strdup(options->ownPins[i]);
+    st->ownPins.push(strdup(options->ownPins[i]));
 
-  st->ownPinCount = options->ownPinCount;
   st->options = *options;
   st->options.ownPins = NULL;
 
@@ -1647,10 +1644,10 @@ void mwm_clientStop(void) {
 
   st->holders.release();
 
-  for (int i = 0; i < st->ownPinCount; ++i)
-    free(st->ownPins[i]);
+  for (p in st->ownPins)
+    free(*p);
 
-  free(st->ownPins);
+  st->ownPins.release();
   free(st);
 }
 
@@ -1667,33 +1664,6 @@ void mwm_clientMember(int added, const char *identifier, const uint8_t *meta,
     member(st, added, identifier, meta, metaLen);
 
   give(st);
-}
-
-static json_t rejection(const char *err, const char *errDocument,
-                        const char *msg) {
-
-  yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
-  yyjson_mut_val *out = yyjson_mut_obj(doc);
-  yyjson_doc *read;
-
-  yyjson_mut_doc_set_root(doc, out);
-
-  if (errDocument != NULL &&
-      (read = yyjson_read(errDocument, strlen(errDocument), 0)) != NULL) {
-    yyjson_mut_obj_add(out, yyjson_mut_str(doc, "err"),
-                       yyjson_val_mut_copy(doc, yyjson_doc_get_root(read)));
-    yyjson_doc_free(read);
-  } else
-    yyjson_mut_obj_add(out, yyjson_mut_str(doc, "err"),
-                       yyjson_mut_strcpy(doc, err));
-
-  if (msg != NULL && (read = yyjson_read(msg, strlen(msg), 0)) != NULL) {
-    yyjson_mut_obj_add(out, yyjson_mut_str(doc, "msg"),
-                       yyjson_val_mut_copy(doc, yyjson_doc_get_root(read)));
-    yyjson_doc_free(read);
-  }
-
-  return meta_jsonFromMut(doc);
 }
 
 /** A copy of one value of a parsed answer as a document of its own. */
@@ -1715,11 +1685,21 @@ static int retryable(json_t error) {
          strcmp(error.message, "timeout") == 0;
 }
 
-/** A rejection as actAsync settles with it. */
-static mwm_settled_t rejected(const char *err, const char *errDocument,
-                              const char *msg) {
+/**
+ * A rejection as actAsync settles with it: {err, msg}. err is the text, or
+ * the error the service sent when there is one; msg what was sent - args,
+ * or d, which is left out when there was none.
+ */
+static mwm_settled_t rejected(const char *err, const json_t *error,
+                              const json_t *msg) {
 
-  json_t value = rejection(err, errDocument, msg);
+  json_t value = {err: err};
+
+  if (error != NULL)
+    value.err = *error;
+
+  if (msg != NULL && strcmp(msg->kind(), "nothing") != 0)
+    value.msg = *msg;
 
   return (mwm_settled_t){1, value};
 }
@@ -1737,11 +1717,11 @@ static mwm_settled_t local(mwm_handler_t handler, json_t data) {
  * balance.js consume, in the caller's task: choose and send (attempt),
  * wait for the one reply when there is one to wait for, and ask balance.c
  * what next. A retry is a new request with an id of its own. When a handler
- * of ours wins the match, it answers here with data, as a local act.
- * shown is what no-target is logged with.
+ * of ours wins the match, it answers here with data, as a local act; a
+ * rejection carries data as its msg. shown is what no-target is logged with.
  */
 static mwm_settled_t consume(const char *shown, mwm_parts_t *parts, char *rest,
-                             const char *msg, json_t data) {
+                             json_t data) {
 
   replies_t back;
   bal_consume_t step;
@@ -1771,7 +1751,7 @@ static mwm_settled_t consume(const char *shown, mwm_parts_t *parts, char *rest,
                 &back);
 
     if (r.kind == RE_WAIT && !back.receive(&r)) {
-      out = rejected("client-stopped", NULL, msg);
+      out = rejected("client-stopped", NULL, &data);
       break;
     }
 
@@ -1790,18 +1770,18 @@ static mwm_settled_t consume(const char *shown, mwm_parts_t *parts, char *rest,
 
     if (r.kind == RE_CLOSED) {
       free(r.target);
-      out = rejected("client-stopped", NULL, msg);
+      out = rejected("client-stopped", NULL, &data);
       break;
     }
 
     if (r.kind == RE_SPENT) {
-      out = rejected("all-targets-overloaded", NULL, msg);
+      out = rejected("all-targets-overloaded", NULL, &data);
       break;
     }
 
     if (r.kind == RE_NO_TARGET) {
       if (bal_noTarget(&step, meta_nowMs()) == BAL_DONE) {
-        out = rejected(bal_outcomeText(step.outcome), NULL, msg);
+        out = rejected(bal_outcomeText(step.outcome), NULL, &data);
         break;
       }
       continue;
@@ -1811,7 +1791,7 @@ static mwm_settled_t consume(const char *shown, mwm_parts_t *parts, char *rest,
       if (r.target != NULL)
         failed(r.target);
       if (bal_tried(&step, BAL_RETRYABLE, meta_nowMs()) == BAL_DONE) {
-        out = rejected(bal_outcomeText(step.outcome), NULL, msg);
+        out = rejected(bal_outcomeText(step.outcome), NULL, &data);
         break;
       }
       continue;
@@ -1831,18 +1811,13 @@ static mwm_settled_t consume(const char *shown, mwm_parts_t *parts, char *rest,
         }
         got.release();
         if (bal_tried(&step, BAL_RETRYABLE, meta_nowMs()) == BAL_DONE) {
-          out = rejected(bal_outcomeText(step.outcome), NULL, msg);
+          out = rejected(bal_outcomeText(step.outcome), NULL, &data);
           break;
         }
         continue;
       }
 
-      {
-        char *text = yyjson_mut_val_write(error._node, 0, NULL);
-
-        out = rejected(NULL, text, msg);
-        free(text);
-      }
+      out = rejected(NULL, &error, &data);
       free(r.target);
       got.release();
       break;
@@ -1866,22 +1841,19 @@ static mwm_settled_t consume(const char *shown, mwm_parts_t *parts, char *rest,
  * Object.assign({}, xConv, y): the pattern's pairs as strings, then the
  * args over them - a key already there keeps its place and takes the new
  * value, a new key goes to the end.
+ *
+ * `for (entry in args) data[entry.keyOf()] = entry;` says the same, and
+ * cost 10 % of an act in bench-local: a walk over an object asks at(i),
+ * which starts from the first key every time, and set looks at every key.
  */
 static json_t merged(const char *pattern, json_t args) {
 
-  json_t data = pattern != NULL ? mwm_patternObject(pattern)
-                                : meta_jsonFromMut(yyjson_mut_doc_new(NULL));
+  json_t data = mwm_patternObject(pattern);
   yyjson_mut_doc *doc = data._doc;
   yyjson_mut_val *root = data._node;
 
-  if (doc == NULL)
+  if (doc == NULL || root == NULL)
     return data;
-
-  if (root == NULL) {
-    root = yyjson_mut_obj(doc);
-    yyjson_mut_doc_set_root(doc, root);
-    data._node = root;
-  }
 
   if (args._node != NULL && yyjson_mut_is_obj(args._node)) {
 
@@ -1937,7 +1909,6 @@ mwm_settled_t mwm_act(const char *pattern, json_t args) {
   mwm_parts_t parts;
   char *text;
   char *rest;
-  size_t room;
   mwm_settled_t out;
 
   mwm_partsInit(&parts);
@@ -1957,8 +1928,10 @@ mwm_settled_t mwm_act(const char *pattern, json_t args) {
     return out;
   }
 
-  room = strlen(text) + 64;
-  rest = (char *)malloc(room);
+  /* prepareRequest's order: id, k, sync, args */
+  text_t request = TEXT`,"k":"a","sync":true,"args":${text}}`;
+
+  rest = request.owned();
 
   if (rest == NULL) {
     mwm_partsFree(&parts);
@@ -1966,10 +1939,7 @@ mwm_settled_t mwm_act(const char *pattern, json_t args) {
     return rejected("no-memory", NULL, NULL);
   }
 
-  /* prepareRequest's order: id, k, sync, args */
-  snprintf(rest, room, ",\"k\":\"a\",\"sync\":true,\"args\":%s}", text);
-
-  out = consume(pattern != NULL ? pattern : text, &parts, rest, text, data);
+  out = consume(pattern != NULL ? pattern : text, &parts, rest, data);
 
   mwm_partsFree(&parts);
   free(text);
@@ -1980,10 +1950,8 @@ mwm_settled_t mwm_act(const char *pattern, json_t args) {
 mwm_settled_t mwm_actE(const char *pattern, json_t data) {
 
   mwm_parts_t parts;
-  char *d = NULL;
-  char *p;
+  char *written;
   char *rest;
-  size_t room;
   mwm_settled_t out;
 
   mwm_partsInit(&parts);
@@ -1995,38 +1963,33 @@ mwm_settled_t mwm_actE(const char *pattern, json_t data) {
     return out;
   }
 
-  if (data._node != NULL)
-    d = yyjson_mut_val_write(data._node, 0, NULL);
+  /* prepareRequest: id, k, sync, p, d - and d left out when undefined */
+  json_t request = {k: "aE", sync: true, p: pattern != NULL ? pattern : ""};
 
-  {
-    yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
+  if (strcmp(data.kind(), "nothing") != 0)
+    request.d = data;
 
-    p = yyjson_mut_val_write(yyjson_mut_strcpy(doc, pattern != NULL ? pattern : ""),
-                             0, NULL);
-    yyjson_mut_doc_free(doc);
-  }
+  /* written once, without its `{`: requestLine puts the id in front */
+  written = yyjson_mut_val_write(request._node, 0, NULL);
+  request.release();
 
-  room = (d != NULL ? strlen(d) : 0) + strlen(p) + 64;
-  rest = (char *)malloc(room);
-
-  if (rest == NULL) {
+  if (written == NULL) {
     mwm_partsFree(&parts);
-    free(d);
-    free(p);
     return rejected("no-memory", NULL, NULL);
   }
 
-  /* prepareRequest: id, k, sync, p, d - and d left out when undefined */
-  if (d != NULL)
-    snprintf(rest, room, ",\"k\":\"aE\",\"sync\":true,\"p\":%s,\"d\":%s}", p, d);
-  else
-    snprintf(rest, room, ",\"k\":\"aE\",\"sync\":true,\"p\":%s}", p);
+  text_t after = TEXT`,${written + 1}`;
 
-  free(p);
+  rest = after.owned();
+  free(written);
 
-  out = consume(pattern != NULL ? pattern : "", &parts, rest, d, data);
+  if (rest == NULL) {
+    mwm_partsFree(&parts);
+    return rejected("no-memory", NULL, NULL);
+  }
+
+  out = consume(pattern != NULL ? pattern : "", &parts, rest, data);
 
   mwm_partsFree(&parts);
-  free(d);
   return out;
 }
