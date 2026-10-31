@@ -1,0 +1,4071 @@
+case 0
+pin role:mwmobserver,cmd:ping
+pin role:mwmtest,cmd:*
+act 1	role:mwmtest,cmd:ping	
+actE 1	role:mwmtest,cmd:ping
+act 1	role:mwmtest,cmd:fail	
+actE 1	role:mwmtest,cmd:fail
+act 0	role:mwmobserver,cmd:ping	
+actE 0	role:mwmobserver,cmd:ping
+case 1
+pin a:*,b:1
+pin a:1,b:*
+pin b:1,c:*
+pin a:*,c:1
+act 1	a:1,b:1	
+actE 1	a:1,b:1
+act 1	a:1,b:1,c:1	
+actE 1	a:1,b:1,c:1
+act 0	a:x,b:1,c:1	
+actE 0	a:x,b:1,c:1
+act 2	b:1,c:1	
+actE 2	b:1,c:1
+case 2
+pin role:x
+pin role:x,cmd:*
+pin role:a,cmd:ping
+pin role:a,cmd:*
+act 0	role:x	
+actE 0	role:x
+act 1	role:x,cmd:go	
+actE 1	role:x,cmd:go
+act 2	role:a,cmd:ping	
+actE 2	role:a,cmd:ping
+act 3	role:a,cmd:pong	
+actE 3	role:a,cmd:pong
+case 3
+pin role:a,cmd:*
+pin cmd:*,role:a
+pin role:a,cmd:ping
+act 1	role:a,cmd:x	
+actE 1	role:a,cmd:x
+act 2	role:a,cmd:ping	
+actE 2	role:a,cmd:ping
+case 4
+pin cmd :ping,role:a
+pin a:1,a:1
+pin a:*,a:1
+pin url:http://x,role:b
+pin a-b:*
+pin a1:2
+act -1	role:a,cmd:ping	
+actE -1	role:a,cmd:ping
+act 1	a:1	
+actE 1	a:1
+act -1	a:2	
+actE -1	a:2
+act 3	url:http://x,role:b	
+actE 3	url:http://x,role:b
+act 5	a-b:q,a1:2	
+actE 5	a-b:q,a1:2
+act -1	role:a	
+actE -1	role:a
+case 5
+pin n:1,cmd:*
+pin n:1.5
+pin b:true
+pin big:12345678901234567000
+pin z:0.1
+pin e:1e+21
+pin s:1e-7
+pin o:*
+act 0		{"n":1,"cmd":"x"}
+act -1		{"n":1.0}
+act 1		{"n":1.5}
+act 2		{"b":true}
+act 3		{"big":12345678901234567890}
+act 4		{"z":0.1}
+act 5		{"e":1e21}
+act 6		{"s":0.0000001}
+act -1		{"o":null}
+act -1		{"o":{"a":1}}
+act -1		{"o":[1]}
+act 7		{"o":-0}
+act 0	n:1	{"cmd":"y"}
+act 0	n:2	{"n":1,"cmd":"y"}
+case 6
+pin k_2:a b
+act 0	k_2:a b	
+actE 0	k_2:a b
+act 0	k_2:a b	
+act 0	k_2:a b	{}
+act 0	k_2:a b	{"k_2":"a b","b":2,"a":"x"}
+act -1	k_2:1.5	{}
+actE -1	cmd:-1
+act -1		{"k_2":[1,2],"a1":-1}
+case 7
+pin a1:ping,k_2:10,B:u:v
+act -1	a1:-1,k_2:a b,B:u:v	
+actE 0	a1:ping,k_2:10,B:u:v
+act -1	k_2:2,B:u:v	
+act -1		{"a1":"ping","k_2":"10","B":"a b"}
+actE -1	a1:ping,k_2:u:v,B:u:v
+act 0		{"a1":"ping","k_2":"10","B":"u:v","x":[1,2]}
+act -1		{"cmd":"1.5","B":"ping","x":"10"}
+actE -1	a1:ping,k_2:ping,B:u:v
+case 8
+pin k_2:*,b:*,a:*,a1:-1
+pin a-b:*
+pin role:ping
+act 0	k_2:a b,b:2,a:x,a1:-1	
+act 2	role:ping,cmd:1	
+act -1	cmd:true,k_2:a b,a1:-1	
+act -1		{"k_2":"-1","b":"1","a":"x","cmd":"x"}
+actE 1	a-b:ping,a1:10
+actE -1	k_2:u:v,b:x,a:2,a1:1
+act 1	a-b:1.5,k_2:a b,cmd:a b	
+act -1	zz:1	{"role":"a b","cmd":"u:v"}
+case 9
+pin x:u:v
+pin x:*,cmd:*,k_2:u:v,B:*
+pin x:*,a:1
+pin cmd:*
+pin a:1.5,a1:ping,role:u:v
+pin role:*,a:*,x:*
+actE -1	x:true,a:2,b:a b
+act -1	x:1,role:x	
+act 4		{"a":"1.5","a1":"ping","role":"u:v","B":"-1","k_2":"10"}
+act -1	a:1,B:u:v	{}
+act 3	zz:1	{"k_2":"x","cmd":"-1","a1":"true","a":"-1"}
+act -1	x:a b	{"a":"2","B":"1"}
+act -1	x:10,b:true	{"x":"10","b":"true"}
+act 0	x:u:v,a1:10,a-b:x	
+case 10
+pin a-b:*,B:*,role :10
+pin cmd:true,role:true,a:*
+pin B:a b,cmd:*,a-b:*,role:*
+pin k_2:*,x:-1
+pin B:*,role:*,b:*
+pin x:x,cmd:1.5,B:1.5,B:ping
+pin a:2,b:a b,B:*
+act -1	a-b:1.5,B:a b,role:1,x:2	
+act -1		{"x":"-1","B":"true"}
+act -1	x:ping,cmd:1.5,B:ping,b:1	
+act 1	cmd:true	{"role":"true","a":"x"}
+actE 4	B:true,role:10,b:1,cmd:u:v
+act 2		{"B":"a b","cmd":"u:v","a-b":"x","role":"1"}
+act -1	x:x,cmd:1.5,B:ping	
+act 6		{"a":"2","b":"a b","B":"true","k_2":"a b"}
+case 11
+pin a1:true,k_2:1.5,a-b:a b
+pin role:2,a1:*,a-b:-1
+pin x:true,a-b:*,B:1.5
+pin a1:10,b:1
+pin a-b:*,a1:*,role:*
+act 1		{"role":"2","a1":"ping","a-b":-1,"cmd":"1.5"}
+act 0		{"a1":"true","k_2":"1.5","a-b":"a b"}
+act 4		{"role":"u:v","a1":"x","a-b":"-1","cmd":"2","b":"x"}
+act 4	a-b:u:v,a1:10,role:-1	
+actE -1	cmd:1.5,k_2:2,a:u:v,a-b:a b
+act 4		{"a-b":"ping","a1":"1","role":"a b"}
+act -1	a1:-1,k_2:1.5,role:ping,cmd:u:v	
+actE 0	a1:true,k_2:1.5,a-b:a b,cmd:10,a:1
+case 12
+pin B:u:v
+pin k_2:*
+pin B:*,b:true
+pin a-b:*,B:-1
+act -1		{"B":"1.5","b":"1.5"}
+act 2	B:10,b:true,a:ping	
+actE 0	B:u:v
+act 2	B:ping,b:true	
+act 1		{"k_2":"u:v","a1":"x"}
+act 2	B:1	{"b":"true"}
+act -1		{"B":"1.5","b":"a b"}
+act 1		{"k_2":"a b","a1":"a b","a":"ping"}
+case 13
+pin cmd:a b,a1:x,b:*
+pin k_2 :*
+act 1	zz:1	{"k_2":"ping","cmd":"1.5"}
+act -1	b:-1,cmd:true	
+act -1	cmd:10,a1:x,b:1.5	
+act 1		{"k_2":"u:v","a":"u:v","cmd":"2"}
+act 1	k_2:x,a1:-1	
+act 1	k_2:1.5	
+act -1		{"cmd":"a b","a1":"-1","b":"2"}
+act -1		{"cmd":"a b","a1":"ping","b":"ping","role":"u:v"}
+case 14
+pin a1:*,b:true,role:2
+pin role:u:v
+pin B:*,k_2:*,a1:*,cmd:*
+actE -1	cmd:2
+act 1	zz:1	{"role":"u:v"}
+act 1		{"role":"u:v","k_2":"ping"}
+act 0		{"a1":"1","b":"true","role":"2","B":"10"}
+actE -1	role:ping,cmd:10
+act -1	cmd:ping,b:true,k_2:2	
+actE -1	a1:true,b:true,role:-1,a-b:u:v
+act 1		{"role":"u:v"}
+case 15
+pin B:10
+pin x:true,B:*
+pin k_2:*
+pin cmd:*,a-b:*
+pin a-b:ping,B:ping
+act -1		{"a-b":"a b"}
+act 3	cmd:x,a-b:1.5,role:ping	
+act 2		{"k_2":"10","b":"a b"}
+act -1	a:10,a-b:1,B:a b	
+act 0	zz:1	{"B":"10"}
+act 3		{"cmd":1,"a-b":"2"}
+act 3		{"cmd":"x","a-b":"1","a":null}
+act 1	x:true,B:ping	
+case 16
+pin cmd:*,a-b:x,b:*
+pin b:*
+pin a-b:*
+pin x:10,b:x,a:10
+pin b:u:v,a:true,role:*,k_2:a b
+pin k_2:2
+act 2	a-b:1,B:a b	{"a-b":"1","B":"a b"}
+act 3	x:10,b:x,a:10	
+act 2		{"b":"u:v","a":"true","role":"2","k_2":"u:v","a-b":"1","B":"2"}
+act 1		{"cmd":"a b","b":"a b","role":"a b"}
+act 5	k_2:2	
+actE 1	x:10,b:true
+actE -1	
+act 1		{"b":"x","a":"10","x":"ping","B":"x"}
+case 17
+pin a-b:a b
+pin k_2:2
+pin role:2
+act -1		{"b":"x","role":"ping"}
+act -1	k_2:1	
+act -1	b:true	
+act 0		{"a-b":"a b","cmd":"1","role":"x"}
+actE 0	a-b:a b,a:2
+actE 2	role:2,x:1.5
+act -1		{"a-b":"-1"}
+act -1	a1:-1,a-b:1,b:1.5	
+case 18
+pin x:*,cmd:*,a1:1.5,a-b:-1
+actE 0	x:1,cmd:u:v,a1:1.5,a-b:-1,B:ping,k_2:ping
+actE 0	x:a b,cmd:true,a1:1.5,a-b:-1,a:ping
+act 0	x:2,cmd:x,a1:1.5,a-b:-1	{}
+actE 0	x:-1,cmd:10,a1:1.5,a-b:-1,k_2:x
+act -1	x:x,cmd:ping,a1:1.5,a-b:u:v,role:x	
+act -1	x:1,a1:10,a-b:-1,k_2:x	
+act 0	x:1,cmd:u:v,a1:1.5,a-b:-1,b:10	
+actE -1	x:ping,cmd:ping,a1:u:v,a-b:-1,a:ping
+case 19
+pin b:*,B:*,k_2:*,cmd :u:v
+pin role:u:v
+pin k_2:a b,a1:1
+pin cmd:*,a-b:true,role:*
+pin role:*,a-b:*
+pin x:1.5,a1:*,k_2:*,B:*
+act -1	B:10,x:1.5	
+act -1	k_2:2,B:1	
+act -1	b:u:v	{"B":"true","role":"1"}
+act -1	x:1	{"a1":"ping","k_2":"1"}
+act 5		{"x":"1.5","a1":"x","k_2":1,"B":"u:v","cmd":1}
+actE -1	role:x
+act 3	cmd:u:v,a-b:true,role:true	
+act -1	cmd:2,a-b:true,b:x,x:ping	
+case 20
+pin role:*
+pin role:a b,a-b:10
+pin a:u:v
+act 0	role:10	
+act 1	role:a b,a-b:10,a:10,k_2:1	
+act 2		{"a":"u:v","B":null}
+actE 0	role:a b,a1:1.5
+actE 0	role:1.5,k_2:1,x:1
+act 0		{"role":"-1"}
+act -1	a:a b	{"b":"1"}
+act 0	role:1,a1:1	
+case 21
+pin cmd:a b
+pin a-b:*,b:2,a1:a b
+pin role:u:v,k_2:*,cmd:10,a:10
+pin cmd:x,x:*
+pin k_2:x
+act 3	cmd:x,x:1	
+act 3		{"cmd":"x","x":"a b"}
+act 0	zz:1	{"cmd":"a b","b":"u:v","a1":{"a":1}}
+actE 2	role:u:v,k_2:true,cmd:10,a:10
+act 3	cmd:x,x:-1,a1:true	
+act 4	k_2:x,role:u:v	
+actE -1	x:2
+act 3	cmd:x,x:ping	
+case 22
+pin role:true,B:a b,cmd:*
+pin B:ping,a:-1
+pin B:1.5
+pin cmd:10,role:a b,b:a b
+act -1		{"B":"ping","a":"1.5","b":"x"}
+act 2	B:1.5,cmd:2	
+act 2	zz:1	{"B":"1.5"}
+act 1		{"B":"ping","a":"-1"}
+act 3	cmd:10,role:a b,b:a b,k_2:2	
+act 3	cmd:10,role:a b,b:a b	
+act 2	B:1.5,x:u:v,a1:2	
+act -1		{"B":"ping","k_2":"true"}
+case 23
+pin B:*
+pin a:x,a1:*
+pin B:2,role:*,x:true
+pin role:true
+pin b:10,a1:*,role:*,a-b:*
+act -1	role:-1,a1:a b	
+act 3	role:true,B:ping,k_2:10	
+act 2	B:2,role:10,x:true,a-b:ping	
+act 0	B:a b,role:ping,x:true,a-b:1	
+actE 3	B:1.5,role:true,x:x
+actE -1	a1:10
+act 4		{"b":"10","a1":"true","role":"a b","a-b":"ping"}
+act 0	B:u:v	
+case 24
+pin a1:2,a:-1,a-b:2
+act 0	a1:2,a:-1,a-b:2	
+act -1		{"a1":"2","a":"-1","a-b":"1"}
+actE -1	a1:2,a-b:2
+act -1	a:u:v,a-b:2	
+act -1		{"a":"-1","a-b":"2","x":"ping","cmd":"10"}
+act -1		{"a1":"ping","a":"-1","a-b":"2"}
+act -1	a1:2,a:-1,a-b:-1,b:a b	
+act -1	a1:2,a:-1,a-b:-1,role:1	{"b":[1,2]}
+case 25
+pin role:1.5,B:1.5,x:ping
+pin B:*,b:-1,x:1,b:-1
+pin x:*,a1:*
+pin a1:1.5,a-b:x,B:*
+pin a-b:*,a-b:*
+act 4	a-b:x,a:a b,role:1	
+act -1		{"B":"2","b":"-1","x":"u:v"}
+act 4	a-b:2,b:2	
+act 4	zz:1	{"cmd":"u:v","b":"1.5","a-b":"x"}
+act 4	role:1.5,B:1.5,x:2,a-b:2	
+act 4	x:10	{"a1":"10","a-b":"1.5"}
+act -1	x:2	
+act 0		{"role":"1.5","B":"1.5","x":"ping"}
+case 26
+pin x:*,a-b:1.5,B:*
+pin x:x,role :10,k_2:*,a:10
+pin b:*,a:*
+act 0	x:true,a-b:1.5,B:true,k_2:u:v	
+act -1	zz:1	{"x":"x","role":"10","k_2":"10","a":10,"a1":null}
+act -1	x:10,B:1	
+act -1		{"x":"x","role":"10","k_2":"10","a":"10"}
+act 2	b:1,a:1	
+actE 2	x:ping,role:ping,k_2:1,a:2,b:10
+act 2		{"b":1.5,"a":"ping"}
+act 2		{"b":"ping","a":"-1","k_2":"1.5"}
+case 27
+pin k_2:a b,cmd:10,b:2
+pin k_2:true,a-b:1.5,cmd:-1
+pin a:-1,a-b:u:v,b:a b
+pin b:2
+pin b:10,cmd:*
+act 3	b:2,a-b:1.5,a1:10	
+act 2	a:-1,a-b:u:v,b:a b,k_2:-1	
+act 3	b:2	
+act 1		{"k_2":"true","a-b":"1.5","cmd":"-1"}
+act 3		{"b":"2"}
+act 4	k_2:a b,cmd:10,b:10,a-b:true	
+actE 3	k_2:x,b:2
+act -1		{"cmd":"u:v"}
+case 28
+pin role:true,x:*
+pin role:a b,a1:a b,x:*
+pin a:1,role:10,a1:*
+pin a-b:-1
+pin cmd:*
+pin b:*,a1:*
+actE -1	role:1,x:-1
+act -1		{"B":"true","a1":"a b","k_2":"2","b":null}
+actE 2	a:1,role:10,a1:u:v
+act 5		{"b":"u:v","a1":"x","a":1}
+act -1	a:ping,role:10,a1:1.5,a-b:10	
+actE 4	x:true,cmd:2,B:ping
+act -1	role:1,x:1.5	
+act -1		{"a1":"a b","x":"u:v"}
+case 29
+pin cmd:10,a:true
+act 0	cmd:10,a:true,a-b:1	
+act -1	role:a b,cmd:10	
+actE 0	cmd:10,a:true,a-b:a b
+act -1	cmd:10	
+act -1	a1:1,a:u:v,a-b:10,x:10,k_2:a b	{}
+act 0	cmd:10,a:true	
+act 0	cmd:10	{"a":"true"}
+act -1	cmd:10	
+case 30
+pin role:*,cmd:true
+pin b:*,k_2:*
+actE -1	k_2:a b,a1:-1,a-b:-1
+act 1		{"b":"2","k_2":"true","role":"a b"}
+act 1		{"b":"1.5","k_2":"-1","a-b":"ping","B":"true"}
+act 1		{"b":"2","k_2":"true","a-b":"2","a":{"a":1}}
+act -1		{"role":"a b","cmd":"x"}
+act 1		{"b":"2","k_2":"ping","role":-1,"a-b":"1"}
+act -1	zz:1	{"B":"1","b":"x"}
+act -1	cmd:a b	{"cmd":"a b"}
+case 31
+pin a:*,B:x,b:a b
+pin a1:2,k_2:1.5
+act -1		{"role":"a b","x":"a b","a-b":"1"}
+act -1	B:x,b:2	
+act -1	k_2:a b,role:-1,B:-1	
+act -1	a1:ping	
+act -1	B:a b,a1:1.5	
+actE -1	a:-1,B:x,b:ping
+actE -1	a:1,B:1
+actE -1	a:x,b:a b,B:a b,cmd:a b
+case 32
+pin a1:ping,k_2:*,a-b:*,a-b:1.5
+pin cmd:2
+pin role:*
+pin a-b:*,a:u:v,role:x
+actE 1	cmd:2
+act 3		{"a-b":"a b","a":"u:v","role":"x","b":[1,2],"k_2":"a b"}
+act 2		{"a-b":"true","a":"x","role":"x","b":"a b"}
+act 1	cmd:2	{"b":"a b","k_2":"1.5"}
+act 1		{"cmd":"2"}
+act -1		{"k_2":"-1","a-b":"1.5"}
+act -1	a1:true,k_2:u:v,a-b:1.5	
+act -1	a1:2,k_2:-1,a-b:1.5,B:u:v	
+case 33
+pin a:*,B:1
+pin a-b:x,b:a b
+act -1	B:1,cmd:true	
+actE 1	a-b:x,b:a b,k_2:x
+act -1	B:-1	{"x":"true","a-b":"ping"}
+act -1	a1:1.5,B:u:v	
+actE 0	a:true,B:1,a1:-1
+actE 1	a-b:x,b:a b
+act 1		{"a-b":"x","b":"a b","a1":"x","k_2":"a b"}
+act -1	a:u:v,B:a b,b:a b	
+case 34
+pin x:-1,a:*,role:1
+pin a-b:x,a:true,a1:*
+pin k_2:*,role :*
+pin role:2,a:true
+pin b:*,a-b:2,a:x
+pin cmd:*,a-b:*,x:ping
+act 3	role:2,a:true	
+act -1	role:2,a:ping	
+act -1	cmd:ping,a-b:ping,x:10,B:ping	
+actE -1	role:2,a:u:v
+actE -1	x:-1,a:a b
+act 3		{"role":"2","a":"true"}
+act 2	k_2:a b,role:1	
+act -1		{"cmd":1,"a-b":"1.5","a":"1","B":"true","x":[1,2]}
+case 35
+pin x:true,cmd:*,a:*,B:*
+pin a-b:10
+pin b:ping,cmd:*,k_2:10
+actE -1	x:true,cmd:a b,a:a b,a-b:true
+act 0	x:true	{"cmd":"x","a":"u:v","B":"u:v"}
+act 0	x:true,cmd:-1,a:true,B:10	
+act 2	b:ping,cmd:10,k_2:10,a:1.5,role:1.5	
+act 1	a-b:10	
+act 2	b:ping,cmd:x,k_2:10	
+actE -1	b:ping,cmd:a b
+act 0		{"x":"true","cmd":"1","a":true,"B":2,"role":"-1"}
+case 36
+pin k_2:*,a-b:10
+pin a-b:1.5
+pin a-b:ping,B:true
+act 0	k_2:2,a-b:10	
+act -1		{"k_2":"a b","a-b":"2","cmd":"2","a1":"u:v"}
+act 1		{"a-b":"1.5","x":"x","B":"10"}
+act -1		{"a-b":"u:v","b":"1.5"}
+act 0	k_2:a b,a-b:10,a1:true	{"k_2":"a b","a-b":10,"a1":"true"}
+act 2		{"a-b":"ping","B":"true","b":10}
+act -1	zz:1	{"B":"1"}
+act 0		{"k_2":"10","a-b":"10","a":"2","x":"a b"}
+case 37
+pin a1:u:v
+pin B:true,cmd:*
+pin role:1,B:x,a:*,x:*
+pin k_2:a b,a1:*,a-b:ping
+pin b:u:v
+pin B:*,a1:ping,a:a b
+pin x:*,k_2:ping
+act 3		{"k_2":"a b","a1":"a b","a-b":"ping","b":"true","role":"u:v"}
+act 4	b:u:v,cmd:-1	
+act 6	x:ping,k_2:ping	
+act -1	x:10,k_2:2	
+act 3	k_2:a b,a1:true,a-b:ping	
+act 6	x:a b,k_2:ping,b:2	
+act -1	role:u:v,B:2,a:1,x:true	
+act 0	a1:u:v	{"a1":"u:v","cmd":"true","k_2":null}
+case 38
+pin k_2:1.5,a-b:*,a1:1.5
+pin role:*
+pin k_2:1,cmd:*,B:*
+pin cmd:x,k_2:u:v,a-b:*
+pin a-b:2,a1:true
+act 2	k_2:1,cmd:a b	{"B":"1"}
+act 1	a:u:v,role:true	
+act 1	role:u:v	{"B":"1","b":"u:v"}
+act -1		{"k_2":"u:v","a-b":"u:v","a1":"1.5"}
+actE 3	cmd:x,k_2:u:v,a-b:2
+act 1	cmd:a b,role:1,B:u:v	{"x":"u:v"}
+act 1	role:1.5,a1:2	
+actE 2	k_2:1,cmd:a b,B:x
+case 39
+pin role:ping,k_2:*,a1:x,x:ping
+pin cmd:*,role:ping
+pin role:-1
+act -1	cmd:-1	{"role":"2","b":"10","k_2":[1,2]}
+actE 1	cmd:1.5,role:ping,k_2:ping
+act 2	cmd:1.5	{"role":-1}
+act 2	role:-1,B:2	
+actE 1	cmd:1.5,role:ping,a:-1
+act -1	role:ping,k_2:x	{"a1":"x"}
+act 2		{"role":-1}
+act 1	zz:1	{"cmd":"2","role":"ping","B":"10"}
+case 40
+pin a:*,b:u:v,a-b:*
+pin a:a b,B:*,b:true
+pin a:a b,role :*,a-b:a b
+pin a1:1,k_2:ping,B:*
+pin role:*,x:*,a-b:*,b:1
+pin cmd:true
+act 1	a:a b	{"B":"a b","b":"true","x":"2","k_2":"1.5"}
+act 4	role:true,x:ping,a-b:1.5	{"role":"true","x":"ping","a-b":"1.5","b":"1"}
+act 4		{"role":"1","x":"1","a-b":"-1","b":"1"}
+act -1	a:u:v,role:a b,a-b:a b,k_2:10	
+actE -1	a:1.5,a-b:a b
+act 1		{"a":"a b","B":"1.5","b":"true"}
+actE 3	a1:1,k_2:ping,B:1
+act -1	b:a b,k_2:10	{"b":"a b","k_2":"10"}
+case 41
+pin k_2:x,b :*
+pin a-b:ping
+pin a:*
+act 2	a:ping	{"x":"2"}
+act -1	b:2,a1:-1,a-b:2	{}
+act 1	a-b:ping,b:x	
+act 1	a-b:ping,cmd:1	
+act -1		{"k_2":"x"}
+act -1	a-b:10,x:1.5	
+actE -1	k_2:1.5,b:2
+actE 2	a:-1
+case 42
+pin a-b:u:v,a:2,cmd:2,a1:*
+pin a1:*,a:*,cmd:a b
+pin role:2,x:*,B:ping,a-b:1
+pin a1:*,role:a b,role:1,b:*
+pin role:x,B:1.5
+pin k_2:a b,a1:*
+act -1	x:-1,k_2:2	
+act -1	k_2:10	{"k_2":"10","a1":"10"}
+act 1		{"a1":"true","a":"1.5","cmd":"a b"}
+act -1	role:2,b:1,cmd:u:v,a:u:v	
+act -1		{"a1":"a b","role":"1"}
+act -1	b:10,a:u:v,role:-1,a1:10	
+act 4		{"role":"x","B":"1.5","a":"u:v","a1":"-1"}
+act -1	a1:1,role:1,b:x	
+case 43
+pin b:a b,x:-1,cmd:1
+pin a-b:*,a1:2
+pin a1:*,a:*,x:*
+pin cmd:*
+act 3	cmd:u:v	{"cmd":"u:v"}
+act 3	b:-1,cmd:ping,a:true	{}
+actE 3	cmd:2
+act -1		{"a":"1","x":"ping","role":10}
+act 2	a1:u:v,x:a b,cmd:-1,a:-1	
+act 3	b:ping,x:-1,cmd:1	{}
+actE 3	cmd:1
+act -1	a1:2	
+case 44
+pin x:*,a1:*
+pin role:2
+pin k_2:*
+pin a:*,a-b:-1
+pin B:*,x:10,role:ping
+pin cmd:*,a1:*,k_2:-1
+pin b:2,B:1,role:u:v
+act 2	zz:1	{"k_2":"1"}
+act 2	a:a b,k_2:2,role:ping	
+act -1		{"cmd":"u:v","role":"true"}
+act 2	cmd:u:v,k_2:-1	
+act 0	x:true,a1:1.5	
+act 1	role:2,cmd:true	
+act 0	x:1.5	{"x":"1.5","a1":2,"b":"2","cmd":{"a":1}}
+act 4	B:u:v,x:10,role:ping	
+case 45
+pin a-b:*
+pin B:1
+pin k_2:-1,a-b:10
+pin a1:1,a:-1,b:10
+act -1	a1:1,a:-1	
+act 0	k_2:ping,a-b:1,a:1.5	
+actE -1	a1:1,a:a b,b:10
+act 0	a1:-1,B:x	{"k_2":"2","a-b":"-1"}
+act -1		{}
+actE 1	cmd:1,x:-1,a:1.5,B:1
+actE 0	a-b:2,B:x
+act 3	a1:1,a:-1,b:10,a-b:1.5,B:1.5	
+case 46
+pin a:2,x:*
+pin a:2,b:2,k_2:x
+pin B:1.5,role:ping
+pin k_2:*,a1:*
+pin cmd:1
+act 2	B:1.5,role:ping,a-b:a b	{}
+actE 1	a:2,b:2,k_2:x,B:1
+act -1	cmd:-1,x:u:v	
+act -1	zz:1	{"a":"2","x":{"a":1},"a-b":"true","b":10}
+act 3	k_2:x,a1:x,B:1.5,cmd:-1	
+act 3	k_2:ping,a1:1,b:1.5,B:a b	{}
+act 3		{"a":"x","b":"2","k_2":"x","a1":"1.5"}
+act 4		{"cmd":"1","a":"1","b":"2"}
+case 47
+pin k_2:1
+pin a-b:*,cmd:*
+pin B:1.5,k_2:*,a:*
+pin k_2:*,a1:*,role:*,cmd:1.5
+pin B:a b,k_2:2,x:true
+pin a-b:true,B:*,B:10
+pin a:2
+act -1		{"B":"a b","k_2":{"a":1},"x":"true","a1":"2"}
+act 6		{"a":"2","role":"2"}
+act 6		{"a":"2","cmd":"ping"}
+actE 1	a-b:true,cmd:2
+act 0	k_2:1,x:1.5,a-b:10	
+act 0	k_2:1	{}
+act -1		{"B":"10","cmd":"-1"}
+act -1		{"k_2":"x","role":"true","cmd":"1.5"}
+case 48
+pin x:-1
+pin a-b:true,x:ping,b:*
+act -1	x:a b,B:a b,role:x	
+act -1	a1:1.5,cmd:2,b:2	{"a1":"1.5","cmd":2,"b":"2"}
+act -1	role:1.5	{"k_2":"10","x":"a b"}
+act 0	x:-1	
+act -1		{"x":"u:v","b":"u:v","k_2":"2"}
+actE 0	x:-1,B:u:v
+actE -1	x:ping,b:u:v
+act 1		{"a-b":"true","x":"ping","b":"ping"}
+case 49
+pin cmd:*,x:a b,k_2:*
+pin cmd:*
+pin cmd:10
+actE 2	cmd:10
+act 2		{"cmd":"10","role":"true"}
+act 2	cmd:10	
+act 1	cmd:ping,a-b:2	{}
+act 1		{"cmd":"1"}
+act 1		{"cmd":"true","x":"a b"}
+act 2		{"cmd":"10"}
+act 1		{"cmd":"ping","a-b":"true"}
+case 50
+pin a1:*,b:a b,a:u:v
+pin a-b:true,x:*,role:*
+pin x:u:v,k_2:-1
+pin role:*
+pin a-b:*,role:a b,B:-1
+pin k_2:*
+act 2	x:u:v,k_2:-1	{}
+act 2	x:u:v,k_2:-1	
+act 5	k_2:1,cmd:2	
+act 4	a-b:true,role:a b,B:-1,b:-1	{}
+act 3	a-b:-1,x:2,role:x,a:2	
+actE 3	role:2
+act 3	zz:1	{"b":"-1","role":"u:v","a-b":true}
+act 0	a1:10,b:a b,a:u:v	
+case 51
+pin b:*,cmd:*,k_2:1.5
+pin b:*,role:1
+pin k_2:*,B:x
+pin b:x
+pin a1:*
+pin a-b:true
+act -1		{"b":"true","role":"x","k_2":"-1"}
+act 3	b:x	{"b":"x"}
+act -1	b:true,B:2	
+act 3	zz:1	{"b":"x","role":-1,"cmd":"x"}
+act 2	k_2:u:v	{"k_2":{"a":1},"B":"x"}
+act 5		{"a1":1.5,"a-b":"true"}
+act -1		{"b":"1.5"}
+act 2	k_2:ping,B:x,cmd:a b	
+case 52
+pin cmd:1.5,x:10
+pin a-b:*,a1:ping,B:x,cmd:*
+pin cmd:*
+actE 1	a-b:x,a1:ping,B:x,cmd:10,b:ping
+act 1	a-b:1.5,a1:ping,B:x,cmd:-1,role:-1	
+act 2	cmd:1.5	
+actE 0	cmd:1.5,x:10
+act -1		{"x":"10","b":"ping"}
+actE 2	cmd:ping,x:2,B:-1,a1:true
+act 2	cmd:2,a-b:true,b:1.5	
+actE 2	a1:ping,B:x,cmd:true
+case 53
+pin a:2,B:*
+act 0	a:2,B:a b	
+act 0	a:2,B:ping,a1:10	
+act -1	zz:1	{"a":"2"}
+actE 0	a:2,B:1
+actE 0	a:2,B:u:v,x:10
+act 0	a:2,B:true	
+act 0	a:2,B:10,a1:10,cmd:10	
+act 0		{"a":"2","B":"a b","a-b":"1.5"}
+case 54
+pin a1:u:v,B:2,b:x,a:*
+pin a:*,B:u:v
+pin cmd:1,a:*
+pin k_2:10
+pin b:ping
+act 2		{"cmd":"1","a1":"1","a":"a b"}
+act 3	k_2:10,x:2,B:10	
+actE -1	cmd:1,a1:a b
+actE 1	a:ping,B:u:v,cmd:x
+actE -1	B:2,b:x,a:u:v
+act -1	a1:u:v,b:x,a:u:v,k_2:a b	
+act 1		{"a":"true","B":"u:v","x":"1.5"}
+act 4		{"b":"ping","role":"true","a1":"u:v"}
+case 55
+pin a-b:10
+pin b:*
+pin k_2 :ping
+act -1	k_2:ping	
+act -1	k_2:ping	{}
+act -1	zz:1	{"B":"x","x":"true","a1":"u:v","a":"a b"}
+actE 1	b:true,x:10
+act 1		{"a1":"ping","x":"1","b":"1"}
+actE 0	a-b:10
+act -1	k_2:ping	
+act -1		{"k_2":"ping","cmd":"a b"}
+case 56
+pin a1:10
+pin a-b:*
+pin b:*,a-b:*
+pin a-b:1,B:*
+pin a-b:a b,b:*,cmd:*
+pin b:*,x:*,a-b:x
+act 5		{"b":"x","a-b":"x","x":"a b","cmd":"a b"}
+act 2	b:10,a-b:u:v	
+actE 2	b:a b,x:x,a-b:10,k_2:-1
+act -1		{"b":"ping","x":10,"a1":"ping","cmd":"true"}
+actE 0	a1:10
+act 3	a-b:1	{"a-b":"1","B":"10","role":"1"}
+act 5	b:ping,x:10,a-b:x	
+act 4	a-b:a b,b:ping,cmd:10	
+case 57
+pin cmd :ping
+pin B:*,cmd:x,a-b:*
+pin a1:2,role:2,a-b:a b
+pin a-b:*,x:1.5,a1:2,role:1
+pin x:true,B:*,x:1.5
+act -1		{"x":"1.5","B":"ping","b":"1","cmd":"u:v"}
+act 1	B:a b,cmd:x,a-b:a b,x:true	
+act -1		{"x":"1.5","B":"u:v"}
+act -1	zz:1	{"cmd":"ping"}
+act -1	x:1.5,B:u:v	
+act -1	zz:1	{"a":"1.5","B":"-1"}
+act 2		{"a1":"2","role":"2","a-b":"a b"}
+actE -1	x:1.5,B:a b
+case 58
+pin cmd:-1,a:*,k_2:x,b:*
+pin b:2,role:*,cmd:2
+pin b:x,a1:ping
+act -1		{"b":"2","role":"true","cmd":"u:v","k_2":"2","a":"10"}
+act -1	b:2,role:-1,cmd:ping	
+act -1	role:a b,cmd:2	{"role":"a b","cmd":"2","k_2":"-1"}
+act 2		{"b":"x","a1":"ping"}
+act -1	role:u:v,cmd:1.5	
+act -1		{"cmd":"a b","a":"true","k_2":"2","b":"10","a-b":"true"}
+act -1	b:2,role:a b,cmd:ping,a:x,B:10	
+act 1	b:2,role:u:v,cmd:2	
+case 59
+pin role:*,a:*,a1:*
+pin a1:*,a-b:true,B:*
+pin x:u:v,a-b:*
+act -1	x:ping,a-b:10	
+actE 0	role:1,a:ping,a1:-1
+act -1	zz:1	{"a1":"2","a-b":"10","B":"true"}
+act -1	a:1.5,a1:true,cmd:x	{}
+act 2	x:u:v,a-b:u:v	
+act 2	x:u:v,a-b:x,b:x,cmd:1.5	
+act -1	x:-1,a-b:ping	
+act 2	x:u:v,a-b:2,role:10	
+case 60
+pin B:a b,cmd:*,x:*,a:a b
+pin a:*,b:ping
+pin a1:*,b:u:v
+act -1		{"a1":"a b","a-b":"true"}
+actE -1	b:u:v
+act -1	b:2,a:-1	
+act 2	a1:true,b:u:v,cmd:10	{"B":"ping"}
+act 2	a1:2,b:u:v	
+act -1	B:a b,x:1,a:u:v	
+act -1	B:-1,cmd:10,x:u:v,a:a b,a-b:1.5	
+act -1		{"B":"2","cmd":"a b","b":2,"a":"true","a-b":"u:v","a1":"1"}
+case 61
+pin a-b:*,b:true
+pin b:1,cmd:*,a-b:*
+act 0	a-b:1,b:true	
+act -1	a:1,x:1.5,a1:1.5	
+act 0	zz:1	{"a-b":"ping","b":"true","k_2":"-1"}
+act 1	b:1,cmd:1,a-b:1.5,x:true,a:1	
+act -1	B:ping,role:true	
+actE -1	a-b:1,b:x,k_2:true,x:x
+act 0	a-b:a b,b:true	
+act 0		{"a-b":2,"b":"true","role":-1,"a1":"10"}
+case 62
+pin a1:1,b:*,a-b:true
+pin B:*,b:*,k_2:true
+pin a-b:u:v
+pin cmd:*,a-b:1.5,role:-1
+pin b:x,cmd:a b
+pin a-b:*,k_2:*,x:*
+act -1	a:-1,B:-1,x:10	
+actE 4	b:x,cmd:a b,k_2:u:v,x:1.5
+act 5		{"a-b":"true","k_2":"1.5","x":"1"}
+act -1		{"a-b":"-1","k_2":"x","a":"2","a1":"2"}
+act 1		{"B":"true","b":"true","k_2":"true"}
+actE 1	B:a b,b:2,k_2:true,role:ping
+act 2	a-b:u:v,role:2	
+act -1	b:a b,cmd:a b	
+case 63
+pin a1:*,k_2 :true
+pin k_2:u:v
+pin k_2:-1,x:*,cmd:ping
+pin cmd:u:v,B:*
+pin k_2:a b,a:10
+pin b:*,cmd:*,cmd:1
+pin b:2,a1:a b,role:true
+actE 1	k_2:u:v,a:10,role:2,x:10
+act -1		{"k_2":"a b","a":"1","x":"1"}
+act 3		{"cmd":"u:v","B":"x"}
+act -1		{"a1":"a b","k_2":"true","b":2}
+act 1		{"k_2":"u:v"}
+actE -1	cmd:1.5,B:1,b:ping,role:1
+act -1		{"k_2":"-1","cmd":"ping","B":"ping"}
+actE -1	a1:-1,k_2:true,a-b:1,role:u:v
+case 64
+pin b:*,a:*,a-b:1.5
+pin a1:*
+pin B:2
+pin x:*
+pin role:1,a1:x,a-b:*
+pin cmd:u:v
+pin role:10
+act 2	role:10,a1:u:v,B:2	
+act 1	a1:u:v,a-b:u:v	
+act -1	b:a b,a-b:1.5	
+actE 5	cmd:u:v,a:a b
+act 1		{"a1":"a b","B":"x"}
+act 6	zz:1	{"role":"10","a-b":"a b"}
+actE -1	
+act 5	cmd:u:v,x:u:v	
+case 65
+pin a-b:*,B:-1,a-b:10
+pin role:*,x:*
+pin cmd:*,k_2:a b
+pin a1:*
+pin a1:*,role:1,a:x,a:*
+pin cmd:*,k_2:a b
+pin cmd:1.5,x:*,B:2
+act 3	a1:ping,a:1.5	
+act 3	a1:a b	{"a1":"a b","B":"x","role":"1"}
+act 3		{"a1":"1.5","x":"1.5"}
+act 1	zz:1	{"role":1.5,"k_2":"true","x":"u:v","a1":"x"}
+act 4		{"a1":"x","role":"1","a":"x"}
+act 5		{"cmd":"u:v","k_2":"a b","role":"true"}
+act 0		{"a-b":"10","B":"-1","cmd":"10","b":[1,2]}
+act 1	role:true,x:1.5	
+case 66
+pin B:-1
+pin a-b:a b,b:1
+actE 1	a-b:a b,b:1
+act -1	B:10,a:u:v	
+act -1	a-b:1.5,b:1	{"B":2}
+act -1		{"a1":"2","role":"true","a":"a b"}
+act -1	a-b:a b,b:1.5	
+act -1	a:a b,x:u:v,b:ping	
+actE 0	B:-1
+act 0	B:-1,x:a b,a1:u:v	
+case 67
+pin a-b:10,a1:x,cmd:*
+pin a:*,a-b:1
+pin b:true,a-b:a b
+pin x:*,a:ping,k_2:*
+pin a-b:ping,k_2:u:v,role:true
+pin x:-1,k_2:ping
+act -1	a1:a b,x:a b,cmd:-1	
+actE -1	x:10,a:1,k_2:x,B:10
+actE 2	b:true,a-b:a b,cmd:10,B:-1
+act -1	a-b:10,cmd:u:v	
+act 1		{"a":"ping","a-b":"1"}
+actE -1	k_2:u:v,role:true,B:true
+actE -1	role:true,B:a b
+actE 3	x:-1,a:ping,k_2:x,a1:true
+case 68
+pin a1:1,role:10,b:*,a:true
+pin cmd:*,a:1
+pin a1:a b
+pin x:1,b:-1
+pin B:true,k_2:u:v,a1:a b,x:-1
+act 2		{"a1":"a b"}
+act 2	a1:a b,a-b:10,b:u:v	
+act 2		{"a1":"a b","B":"ping"}
+act -1	a-b:1,B:u:v	
+act 1	cmd:x,a:1,role:1.5	
+act -1		{"a1":"1","role":"10","b":-1,"a":"1","k_2":"2"}
+act 1	cmd:2,a:1	{"b":"1.5"}
+act 2		{"B":"x","k_2":"u:v","a1":"a b","x":"-1"}
+case 69
+pin a-b:*
+pin a:a b,b:*,cmd:*
+pin a-b:*,k_2:*,b:*,B:*
+pin k_2:*,a-b:-1,cmd:1
+pin a1:-1,a:-1,cmd:*
+pin x:ping,cmd:*,a:a b,k_2:ping
+pin a1:*,b:*,B:x,a:*
+actE 0	a-b:ping,role:a b,k_2:10
+act -1	zz:1	{"cmd":"10","x":"ping"}
+act 6	a1:1,b:-1,B:x,a:x,role:1	
+act 5	x:ping,cmd:2,a:a b,k_2:ping,a1:x,a-b:x	{"x":"ping","cmd":"2","a":"a b","k_2":"ping","a1":"x","a-b":"x"}
+actE 0	a-b:-1,B:u:v,cmd:ping
+act -1	cmd:1,b:true	
+act 6	a1:2,b:u:v,B:x,a:true	{"a1":"2","b":"u:v","B":"x","a":"true"}
+act -1	a1:u:v,b:2,B:a b,a:2	
+case 70
+pin b:10,B:*,k_2:true
+pin a-b:*,B:*
+pin x:1,role:*
+act -1		{"b":"true","B":"u:v","k_2":"true"}
+act -1	a:1.5,x:ping	
+act -1	a-b:a b	{}
+actE 0	b:10,B:ping,k_2:true,role:1
+act 2	x:1	{"role":"u:v","cmd":"ping","a":"u:v"}
+act 1	a-b:-1,B:a b,role:-1,a1:true	
+actE -1	B:a b,role:true,k_2:10,b:1
+act 2	x:1,role:ping,a-b:10	
+case 71
+pin a:1.5
+act 0	a:1.5,a1:2,role:1	
+act 0		{"a":1.5,"x":"-1"}
+actE -1	k_2:1,a-b:a b,a1:1.5,a:u:v
+act 0	a:1.5	
+actE 0	a:1.5,a1:u:v
+actE 0	a:1.5,role:ping
+act 0	a:1.5,B:u:v,a-b:a b	
+act -1	a:u:v,a1:10	
+case 72
+pin B:1.5,a:*,a1:10
+pin b:*
+pin role:*,B:*,b:*,x:true
+pin role:a b
+pin a-b:a b,a:1
+pin cmd:-1,b:10,a-b:*
+pin x:a b
+act 5	cmd:-1,b:10,a-b:1.5	{"cmd":"-1","b":"10","a-b":"1.5","x":"10"}
+act 6	x:a b,b:ping	
+act 1		{"a1":"a b","k_2":"2","B":"true","b":"true"}
+act 1		{"b":"x","B":"u:v","k_2":"2"}
+act 1	zz:1	{"b":2,"B":"-1"}
+act 1	a-b:a b,b:ping,x:true	
+act -1	cmd:10	
+actE -1	
+case 73
+pin k_2:ping
+pin k_2:1.5,b:2
+pin b:-1,cmd:x,a-b:*,a1:*
+pin b:*,B:*
+pin x:*,B:true
+pin x:*,B :true,b:true
+pin a-b:*,a1:true,a:*,x:true
+act 0	zz:1	{"k_2":"ping"}
+actE 3	cmd:a b,B:x,role:x,b:ping,a:true
+act 3	x:true	{"B":"10","b":"true"}
+act 4	x:1.5,B:true,b:true,a:2	
+act -1		{"x":"true"}
+act -1	k_2:-1,b:2,a1:ping,cmd:1.5	
+act -1		{"x":"1"}
+act 0		{"k_2":"ping","b":"10","a-b":2}
+case 74
+pin b:*
+pin cmd:true,x:u:v
+pin a-b:1
+pin cmd:*,a:*
+pin a-b:*
+pin x:2,a1:2,role :1
+actE 0	b:u:v
+actE -1	
+act 4	a-b:u:v,role:-1	
+act 3	cmd:u:v,a:10	
+act 4	a-b:10,B:10	{"a-b":10,"B":"10"}
+actE 3	cmd:1,a:x,k_2:u:v
+act -1	k_2:1.5	{"k_2":"1.5"}
+act 3	cmd:u:v,a:ping,a-b:10	
+case 75
+pin cmd:*,a:*
+pin k_2:1.5,a-b:1.5
+actE -1	cmd:10
+act -1	a-b:1,B:u:v,x:-1,b:1.5	
+actE 0	cmd:u:v,a:ping
+act 1	k_2:1.5,a-b:1.5	
+act -1	B:x,role:1,b:10,k_2:x	
+actE 0	cmd:10,a:a b
+act 1	k_2:1.5,a-b:1.5,role:u:v	
+actE 1	k_2:1.5,a-b:1.5
+case 76
+pin b:*,k_2:a b
+pin cmd:a b,a1:*
+act -1	zz:1	{"k_2":"a b"}
+act -1	a-b:-1,cmd:u:v,a1:u:v	
+act -1	k_2:a b,a1:10,a-b:-1	
+act -1	B:10,role:2,a:2,a1:true	
+act 0		{"b":"1","k_2":"a b"}
+actE -1	cmd:1,a1:10,k_2:1
+actE -1	a1:u:v,role:1
+act 0	b:a b,k_2:a b	
+case 77
+pin x:*
+pin k_2:u:v
+act 0	a-b:x,B:true	{"a":"true","role":"ping","x":"1"}
+act 1	k_2:u:v,a:x	
+actE -1	
+act 0	x:x	
+act -1	a1:ping	
+act 0	x:2,a-b:2	{"B":"1.5"}
+act 0	x:1.5	
+actE 1	k_2:u:v,x:u:v
+case 78
+pin a1:*,a-b:*,B:*
+pin x:*,a-b:true
+pin a1:*,role:ping
+pin x:true,role:*
+pin a:1.5,b:*
+pin cmd:u:v,B:*,x:2,cmd:2
+pin a-b:a b,a:*
+act 6		{"a-b":"a b","a":10,"x":"x"}
+act 3		{"x":true,"role":1,"k_2":"1.5"}
+actE 1	x:2,a-b:true,k_2:-1
+act 0	zz:1	{"a1":"x","a-b":"-1","B":"-1"}
+act 6	zz:1	{"a-b":"a b","a":"true","B":"10"}
+act -1	a-b:2	
+act -1	a:1,b:true	
+act -1	a1:a b,a-b:1.5	{}
+case 79
+pin a-b:1.5
+pin x:*,a-b:*,a :*
+pin x:10
+pin k_2:*,role:*
+pin b:ping
+pin B:*,a1:*,a:a b
+pin role:*,a:*,b:*,x:*
+act 2	x:10	
+act 0	a-b:1.5,a1:2	
+act -1	a-b:x	
+actE -1	B:a b,a:a b
+act 2	x:10,k_2:1.5,B:1	
+act 2		{"x":"10"}
+act 5	B:x,a1:2,a:a b	{"x":"ping"}
+act 6		{"role":"a b","a":"10","b":"2","x":"true","cmd":"2"}
+case 80
+pin role:*,x :x,k_2:*
+pin B:true
+pin a:1,a-b:a b,cmd :a b
+pin cmd:*,role:u:v,x:2,a:2
+pin a:2,role :1,a-b:a b
+pin k_2:10,cmd:*,a:*
+act -1	zz:1	{"role":"1","x":"x","k_2":1.5}
+act -1	a:10,role:1,a-b:a b	
+act -1	role:10	{"x":true,"k_2":-1,"b":"true","B":null}
+act -1		{"x":"x","k_2":"1","a1":"a b"}
+act -1	role:x,x:x,k_2:1	{"role":"x","x":"x","k_2":"1","b":"-1","a":"true"}
+act -1		{"a":"1","a-b":"a b","cmd":"a b","a1":"u:v"}
+act 1	zz:1	{"B":"true","a-b":"ping"}
+actE -1	a:10,cmd:10,B:2
+case 81
+pin a1:2
+act 0	a1:2	
+act 0		{"a1":"2"}
+act -1	a-b:1	
+act 0	zz:1	{"a1":"2","cmd":-1}
+act 0	a1:2,a:u:v	
+act -1		{"a1":"x"}
+act 0	a1:2	{"b":"x","a":{"a":1}}
+act -1	zz:1	{"a1":"1"}
+case 82
+pin a1:-1,x:*,b:*
+pin a1:1,x:1.5,b:10,cmd:-1
+pin cmd:a b,a:*,role:u:v
+pin a1:*,x:u:v
+pin cmd:-1,a-b:ping,role:2
+pin cmd:*,x:1.5,a:*
+act 5		{"cmd":"u:v","x":"1.5","a":"x","role":"2"}
+act -1	cmd:2,a:u:v,role:10,a-b:u:v	
+act 4		{"cmd":"-1","a-b":"ping","role":"2","a":-1}
+actE -1	a:true,x:1
+actE 1	a1:1,x:1.5,b:10,cmd:-1
+actE -1	a1:u:v,x:ping,b:10,cmd:-1,a-b:2,B:1.5
+act -1	cmd:-1,a-b:ping	
+act -1	a1:1,x:-1,cmd:1,a-b:a b	{}
+case 83
+pin B:*
+pin a1:a b
+pin B:true,a-b:10,a1:*,x:*
+pin role:*
+pin b:*
+pin role:u:v
+act 1		{"a1":"a b","k_2":"ping","cmd":null}
+act 0	x:-1,k_2:x	{"role":"true","B":"u:v","a":"1.5"}
+act 0	B:a b,a:u:v,cmd:1,a-b:1	
+act 0	B:-1	{"a1":"true"}
+act 1		{"a1":"a b","B":"ping"}
+act 1		{"a1":"a b"}
+act -1	zz:1	
+act 0		{"B":"1","x":"10","role":"a b"}
+case 84
+pin a:1,a-b:u:v,cmd:x
+pin a:*,k_2:true
+pin b:-1,a1:u:v,k_2:true
+pin a1:x,x:10,b:*,a-b:a b
+pin b:x,a-b:*
+act 4	b:x,a-b:true	
+act -1		{"a":"1","a-b":"true","cmd":"x","a1":[1,2]}
+act 4	b:x,a-b:-1	
+actE 3	a1:x,x:10,b:10,a-b:a b
+actE 3	a1:x,x:10,b:10,a-b:a b,k_2:10
+actE -1	a1:1.5,a-b:a b
+actE -1	a1:u:v,k_2:true,b:a b
+act 1	a:-1,k_2:true	
+case 85
+pin a-b:1,b:-1
+pin a:*,role:true,x:1.5
+pin k_2:*,x:x
+pin a-b:u:v,k_2:*
+act -1	zz:1	{"k_2":"1","x":"a b"}
+act -1		{"a":"x","b":"a b","cmd":[1,2]}
+act 3	a-b:u:v,k_2:x,role:2	
+act 1	a:2,role:true,x:1.5	{}
+act 3		{"a-b":"u:v","k_2":"a b","cmd":"ping","b":"2"}
+act -1	role:-1,a1:2,a:10	
+act 0	a-b:1,b:-1	
+act -1		{"k_2":"ping","x":"true","a1":"1.5"}
+case 86
+pin b:*,a:*,a1:-1
+pin cmd:1,role:*,B:1.5,a:1.5
+pin a:2
+act -1		{"x":"u:v","B":"10","cmd":"ping"}
+act -1	cmd:1,role:x,B:1.5,a:true	
+act 1	cmd:1,role:1.5	{"B":"1.5","a":"1.5"}
+act -1		{"x":"x","k_2":1.5,"role":"2"}
+act -1	cmd:1,B:1.5,a:1.5	
+act 2	a:2	{}
+actE -1	b:x,B:x,a1:true
+act -1	x:ping,a-b:1,k_2:u:v	{"cmd":{"a":1}}
+case 87
+pin B:u:v,x:1.5
+pin x:u:v,a1:1,a-b:1
+pin x:10
+pin role:ping
+pin k_2:*,x:true,a:*,cmd:*
+pin B:*
+pin k_2:10,a-b:a b,cmd:x,B:1.5
+act 3		{"role":"ping"}
+act 5	b:ping,B:2	
+actE 0	B:u:v,x:1.5
+actE -1	cmd:x,a-b:2,a:a b
+act 6		{"k_2":10,"a-b":"a b","cmd":"x","B":1.5}
+act 5	B:u:v	{"B":"u:v","x":"a b"}
+act 1		{"x":"u:v","a1":"1","a-b":"1"}
+act 5	x:u:v,a-b:ping	{"B":"true"}
+case 88
+pin cmd:*,role:1.5
+pin a:ping,a1:x,k_2:x,role:*
+pin a1:a b,x:*
+act 2		{"a1":"a b","x":"a b"}
+act -1	a:ping,B:u:v	
+act 2	a1:a b,x:1	
+act 2		{"a1":"a b","x":"x","a":"1.5","a-b":"2"}
+act 2	a1:a b,x:2,cmd:x	{}
+act -1		{"cmd":"true","a1":"1.5","b":"x","a":10}
+actE -1	a:a b,B:1,role:-1,cmd:1.5
+act -1	k_2:x,role:10	
+case 89
+pin role:u:v,x:*
+pin x:*
+pin role:2
+act -1		{"role":"u:v","k_2":"-1","a-b":"-1"}
+actE -1	role:u:v,B:-1
+act 1	x:ping,a-b:2	
+act 2	role:2,cmd:10,a:u:v	
+actE 2	role:2,B:-1
+act 1		{"x":"-1","role":"true"}
+act -1	role:x,a-b:x	
+actE 0	role:u:v,x:2
+case 90
+pin cmd:1,b:true,a-b:10
+pin a1:1,a:u:v
+actE -1	cmd:1,b:-1,a-b:10,a1:1
+act -1		{"a1":"true","a":null}
+act -1		{"a1":1,"B":"true","a-b":"1"}
+act -1	zz:1	{"a1":"1","a":"10","a-b":"a b"}
+act -1	cmd:10,b:true,a-b:2	{}
+act 1		{"a1":"1","a":"u:v","x":"10"}
+act -1	cmd:1,b:true,a-b:ping	
+act -1	cmd:-1,b:true,a-b:a b,B:2	
+case 91
+pin a:ping,k_2:*,role:*
+pin x:x,a1 :a b,role:a b,a-b:*
+pin k_2:*,a:*,b:*,x:1
+pin x:-1,a:*
+pin role:*
+act 3	k_2:u:v,a:-1,b:1.5,x:-1,a1:true	
+act 3		{"x":"-1","a":"10","B":"x"}
+act 4		{"role":"u:v","B":"x","a1":"x"}
+act -1		{"k_2":"2","a":"1","b":"1","x":"u:v"}
+act 4	role:-1,b:ping,a1:x	
+act 4	zz:1	{"role":"-1"}
+act -1	a1:a b	
+act 3		{"x":"-1","a":"u:v","k_2":"1.5","B":"-1"}
+case 92
+pin role:1,a:true
+pin B:1,cmd:*,a1:*
+pin a1:*
+pin role:1
+actE 3	role:1,B:true
+actE -1	B:1,cmd:ping,x:1
+act 2		{"cmd":"1","a1":10,"a-b":"u:v","B":"true"}
+act 1	B:1,cmd:a b,a1:1.5	{}
+act 1	B:1,cmd:x,a1:-1	
+act 2	zz:1	{"a1":"-1"}
+act 0	role:1	{"a":"true"}
+act 0		{"role":"1","a":"true","cmd":"-1"}
+case 93
+pin b:x
+act 0	zz:1	{"b":"x","a":"1.5","a-b":"x"}
+act -1	b:10	
+act 0	b:x,role:x	{}
+act 0	b:x	
+act -1		{"b":"1","B":"10","role":"x"}
+act 0	b:x,x:2,role:2	
+act -1		{"b":"u:v","a":"10"}
+act 0		{"b":"x"}
+case 94
+pin a1:10
+pin x:x
+pin B :a b,a1 :2,k_2:2
+pin b:*
+pin a:-1
+pin cmd:1,role:*,a:ping
+act 4	a:-1,a1:-1	
+act 5	cmd:1,role:u:v,a:ping	
+act -1		{"B":"a b","a1":2,"k_2":"u:v","a":"x"}
+actE 3	b:x,a1:u:v,cmd:-1
+act -1	B:a b,a1:2,k_2:2	
+actE -1	B:x,a1:1.5,k_2:2,a-b:a b
+act 3		{"b":"2","role":2}
+act 1	x:x,a-b:u:v	
+case 95
+pin k_2:*,cmd:10
+pin B :*,a-b:*,a1:*
+pin a:*,a1:2
+pin k_2:true,x:*,role:*
+pin a:*,a1:*
+pin b:*,a:a b,a1:*
+pin cmd:a b,a1:a b
+act -1		{"x":"-1","k_2":"x","b":"u:v"}
+act 1	B:1.5	{"a-b":"1.5","a1":"u:v","b":null}
+act -1	x:x	
+act 3		{"k_2":"true","x":"a b","role":"1.5","a1":"10"}
+act 2	a:true,a1:2,role:-1	{}
+actE 0	k_2:ping,cmd:10,a:2
+act 5	b:x	{"b":"x","a":"a b","a1":"10","k_2":"1.5","B":"ping"}
+act -1	zz:1	{"k_2":"2","x":"2","role":"x"}
+case 96
+pin a1:true,a:a b
+pin a:true,cmd:ping,cmd:*
+pin a:*,cmd:*
+act 2	a:true,cmd:u:v,role:u:v	{}
+act 2	a:-1,cmd:2,a1:u:v	
+act -1	a-b:ping,B:a b,b:a b	
+act -1		{"a":"1"}
+actE 2	a:1.5,cmd:true
+act -1	a:u:v,role:10,k_2:2	
+actE 0	a1:true,a:a b
+actE 2	a:true,cmd:1.5,x:a b
+case 97
+pin k_2:*,a-b:-1,a:ping
+pin cmd:a b,a-b:*,B:-1,role:*
+pin k_2:a b
+pin B:a b,cmd:x,a:x,a1:x
+act -1	k_2:1.5	{"cmd":"2","B":"2"}
+act -1		{"B":"a b","cmd":"u:v","a":"x","a1":"x"}
+act 2	k_2:a b,a-b:-1,a1:1,x:-1	
+act -1	a1:true	
+act 0	zz:1	{"k_2":"2","a-b":"-1","a":"ping","b":[1,2],"a1":"a b"}
+act -1		{"cmd":"ping","a-b":"1","B":"-1","role":"10","b":null}
+act -1		{"role":"x","a-b":"u:v","a1":"2"}
+act 2		{"k_2":"a b","x":"ping","cmd":"1"}
+case 98
+pin k_2:*,cmd:x
+pin a-b:*,x:2
+pin a1:*,a-b:1,cmd:*
+pin cmd:*,a1:a b
+pin a-b:1,cmd:*
+pin a1:10,k_2:*,a:*
+act -1	a1:2,b:ping,x:10	
+act 1	a-b:a b,x:2,role:1	
+act -1	a-b:1.5,x:-1	
+act -1		{"B":"x","x":-1}
+act 3	cmd:x,a1:a b	
+actE 1	a-b:true,x:2,B:2
+actE 0	k_2:1,cmd:x,a:ping,b:1.5
+act -1	cmd:true,b:x,a1:ping	
+case 99
+pin x:u:v,B:u:v
+pin role:10,b:a b,a1:*,x:*
+pin cmd:2,a1:*
+pin B:*,a1:*
+pin x:1.5,k_2:*,cmd:1.5
+pin a:*
+pin b:a b,x:1.5,a1:*
+act -1	x:a b,B:u:v	
+act -1	x:x,k_2:2,cmd:1.5	
+act -1		{}
+act 3		{"role":"2","b":{"a":1},"a1":"10","x":"1","B":"2"}
+act 4	x:1.5,k_2:ping,cmd:1.5,b:-1	
+act -1	x:1.5,k_2:1.5	
+act 2	zz:1	{"cmd":"2","a1":"2","role":"true"}
+act -1	role:10,b:10,a1:1	{"x":"true"}
+case 100
+pin k_2:*,B:true,b:1.5
+pin b:true,k_2:true
+pin B:2,a-b:1
+act -1	B:true	{"b":"1.5"}
+act 2	B:2,a-b:1,x:-1	{"a1":"1"}
+act -1	B:x	{"B":"x","b":"1","a1":"2","k_2":"a b","cmd":"1.5"}
+act -1	k_2:true,x:1	
+actE -1	b:x,k_2:true,role:1.5
+act -1	B:10	
+act -1		{"k_2":"10","B":"true","b":"10","cmd":"a b"}
+act -1	zz:1	{"B":"2","a-b":"10","k_2":"10","x":"true"}
+case 101
+pin b:*
+pin x:a b
+pin a1:x,b:a b
+pin x:*,B:*,a:ping
+pin b:a b,x:*
+pin role:x
+act 0	b:a b,a:x	
+act -1	B:-1,a1:1.5	
+act 4	b:a b,x:10,B:1	
+act 1		{"b":"ping","x":"a b","a1":"x"}
+act -1		{"x":"10"}
+act -1		{"role":"-1","cmd":"u:v"}
+act 0	b:x,role:1	
+act 1	x:a b	
+case 102
+pin k_2:true,role:1
+pin role:*
+act 0	k_2:true,role:1,b:x	
+act -1	k_2:true	
+act 1		{"role":"u:v","a1":"true"}
+act -1	a-b:2,B:x	
+act 0	k_2:true,role:1	
+act 1	zz:1	{"role":"10"}
+act 1	role:10	{"a-b":"2","x":"a b"}
+act -1		{"x":"10"}
+case 103
+pin a:1.5,a-b:u:v
+pin B:2
+act -1	a1:a b,cmd:u:v	{"a":10,"x":null}
+act -1	B:1,b:ping	
+act -1	a:1.5	{"a-b":"2","k_2":"10"}
+actE -1	a:true,a-b:u:v
+act -1	B:-1,role:x	
+actE -1	a:1.5,a-b:10,B:1
+act -1	B:true,a1:2	
+act -1	a:x,a-b:u:v,B:-1,a1:x	
+case 104
+pin B:-1,a-b:2,a:*
+pin B:true,x:x
+pin a:*,x:1.5
+pin a-b:a b,B:2,a:*
+actE -1	b:10
+actE -1	B:ping,a:10
+act 2	a:-1,x:1.5	
+act -1		{"x":"x","cmd":"1.5"}
+actE 3	a-b:a b,B:2,a:true
+act -1	B:ping,a-b:2	{"k_2":-1}
+act 1	B:true,x:x	
+act 2		{"a":"u:v","x":"1.5"}
+case 105
+pin a-b:true,b:*
+pin B :*,a-b:*,a1:*
+pin a-b:*,role:*
+pin a-b:*,cmd:*,a1:1
+pin k_2:2,a1:-1
+pin a-b:2
+pin cmd:10,b:1
+act 2	a-b:2,role:10	{"a-b":"2","role":"10"}
+act -1	a:-1	
+actE 6	cmd:10,b:1,k_2:true,x:ping
+actE 6	cmd:10,b:1,role:true
+act 6	cmd:10	{"b":"1"}
+actE -1	a:a b,B:u:v,a1:-1,b:2,role:1.5
+act -1		{"a-b":[1,2],"cmd":"2","a1":1}
+actE 2	a-b:2,B:2,role:-1
+case 106
+pin x:10,a1:2,role:*,cmd:10
+pin a1:1,a-b:x
+pin k_2:-1
+pin b:1,B:*
+pin b:*
+pin a-b:2,b:u:v
+pin cmd:10,a:2
+act 4	b:x,a:true	
+act -1		{"k_2":"ping"}
+act -1	B:a b,k_2:2,cmd:x	
+act 5		{"a-b":2,"b":"u:v"}
+act -1	a1:u:v	
+act -1	B:x,x:a b,cmd:a b	
+act 3	b:1,B:true,cmd:true	
+actE -1	cmd:u:v,a:2,role:10
+case 107
+pin x:*,role:a b
+pin B:*,a-b:10,k_2:*
+pin k_2:2,b:*,a-b:*,a:10
+pin a:*,role:u:v
+pin B:2
+pin cmd:2,role:ping
+pin B:*,role:1,x:a b
+act -1		{"b":"ping","a-b":"1.5","a":"10"}
+act -1	zz:1	{"a":"x","role":"1.5","B":"1","a-b":"x"}
+act 2		{"k_2":"2","b":"10","a-b":"u:v","a":"10","x":"x"}
+act -1	B:-1,cmd:ping,a-b:1,a:1.5	
+act 6	zz:1	{"B":"x","role":"1","x":"a b","a1":"true"}
+act -1		{"a-b":"10","k_2":"1.5","cmd":"u:v"}
+act 1	B:u:v,a-b:10,k_2:x,cmd:2	
+act -1	a1:1.5,a-b:2	{}
+case 108
+pin role:u:v,k_2:*
+pin b:2,a1:x
+act -1		{"b":"2","a1":"2","k_2":"x","cmd":"u:v"}
+act 0		{"role":"u:v","k_2":"x","a-b":"u:v","a":"1.5"}
+act 0		{"role":"u:v","k_2":10,"a":"true","B":1}
+act -1	b:2,a1:a b,B:10	
+act 1	b:2,a1:x	
+act 1	b:2,a1:x,role:true	
+act 1	b:2	{"a1":"x"}
+act 0		{"role":"u:v","k_2":"1","B":"-1"}
+case 109
+pin x:*
+pin cmd:*,a:*,k_2:2
+pin role:-1
+act 1	cmd:true,a:u:v,k_2:2	
+act -1	role:a b	{"a":"true","a1":"2"}
+act -1	a:10,k_2:2,role:u:v	
+act 1	cmd:-1	{"a":"1","k_2":"2","a-b":"ping"}
+actE 0	x:ping,a1:10,cmd:1
+act 0	zz:1	{"x":"10","a-b":[1,2]}
+act 2	role:-1,a:a b	
+act 2	role:-1,k_2:ping,x:-1	{}
+case 110
+pin a:*
+pin a1 :1.5
+pin k_2:*
+act 0	a:1,a-b:-1,a1:a b	
+act 0	a:ping,k_2:true	{"a":"ping","k_2":"true"}
+actE 0	a:x,a-b:1.5,k_2:1
+act 0	a:ping	
+act -1	zz:1	
+act 2		{"k_2":"10","x":"true"}
+act 0	a:2	{"k_2":"u:v","B":"2"}
+act -1	b:a b	
+case 111
+pin k_2:2
+pin k_2:*,role:*,b:2
+pin x:u:v,B:u:v
+act -1		{"role":-1,"b":"2","a-b":"a b"}
+act 0	k_2:2,b:x	
+actE -1	a1:x
+act -1	k_2:u:v,B:2	{"cmd":"true"}
+actE -1	a-b:2
+act -1	B:u:v	{"role":"x"}
+act 0	k_2:2,x:10	
+act -1	k_2:10,B:u:v	
+case 112
+pin a1:-1
+pin cmd:u:v,b:ping,k_2:2
+act 0	a1:-1,a:10	
+act 1	cmd:u:v,b:ping,k_2:2,role:true,B:1.5	
+act -1	cmd:u:v,b:1.5,k_2:2,a-b:10	{}
+act 1	cmd:u:v,b:ping	{"cmd":"u:v","b":"ping","k_2":2,"x":"10"}
+actE 1	cmd:u:v,b:ping,k_2:2,a-b:true,a:true
+act -1		{"cmd":"u:v","k_2":"true"}
+act 0	a1:-1,B:2	
+act -1	cmd:u:v,b:ping,k_2:1.5	
+case 113
+pin a1:x
+pin role:ping
+pin a1:*
+pin cmd:*,b:*
+pin a-b:*,B:*,a1:u:v,b:*
+pin k_2:u:v,role:2,a-b:*
+act 2	a1:2,x:ping,a-b:2	
+act 4	zz:1	{"a-b":"x","B":"true","a1":"u:v","b":"u:v","cmd":"x"}
+actE 5	k_2:u:v,role:2,a-b:u:v
+act 0	a1:x	
+actE 2	a1:1,k_2:u:v
+act -1	k_2:10	
+actE 5	k_2:u:v,role:2,a-b:x,a1:a b
+act 1	zz:1	{"role":"ping","B":"a b","b":"10"}
+case 114
+pin B:x,a1:1.5
+pin k_2:-1,a1:1
+pin k_2:2
+pin x:10,a:true,cmd:1
+pin a1:1,x:x,k_2:u:v
+pin a-b:*,a1:a b,k_2 :-1,cmd:*
+pin a:*
+act 2	k_2:2	{"a":"2","b":"10"}
+act -1	a-b:-1,a1:a b,k_2:-1,cmd:true	
+act -1	a1:u:v,B:true,x:2	
+act -1	x:10	
+act -1	zz:1	{"b":[1,2]}
+act 3	x:10,a:true,cmd:1	
+actE -1	a-b:ping,a1:a b,k_2:-1,cmd:-1
+act 6		{"a":"2"}
+case 115
+pin role:true
+pin cmd:*,B:*
+pin x:*
+pin k_2:*,a:*
+act 0		{"role":"true"}
+act 3	a:-1,b:1.5,a1:ping,k_2:ping	
+act 0	role:true,cmd:-1	
+act 2	cmd:1.5,x:2	
+act 3	k_2:2,a:u:v	{"b":"x"}
+act 3	k_2:x,b:u:v,a:x,a-b:1	
+act 3		{"k_2":10,"a":"10","b":"a b","B":"-1"}
+act 2	x:true	
+case 116
+pin b:*
+pin a:*
+pin x:x,a-b:x,role:1.5
+pin x:2,cmd:*,a:2
+pin B:10
+pin a:u:v,cmd:x
+pin k_2:true,role :*
+act -1		{"k_2":"a b","a1":"x"}
+act 1		{"a":"1.5"}
+act -1		{"cmd":"x"}
+actE -1	k_2:true,B:true
+act 0	b:true	
+act 1	zz:1	{"a":"10","cmd":"true","B":"ping"}
+act 5	a:u:v,cmd:x,a1:-1	
+actE -1	x:-1,a-b:10,role:1.5,a1:ping
+case 117
+pin k_2:u:v,a1:*
+pin x:*
+pin a-b:*,a:*,B:*
+pin a:10
+pin a1:*,a:*,x:1.5
+pin b:*,a1 :*,x:1
+act 0		{"k_2":"u:v","a1":"a b"}
+act 1	a1:1.5,a:ping,x:2,b:ping	
+act 3	a:10	
+act 4		{"a1":"1","x":"1.5","role":"10","a":"a b"}
+act 2	a-b:10,a:1,B:true,cmd:a b	
+act 1	b:true,a1:2,x:-1	
+act 2	a-b:2,a:true,B:-1,role:1.5	
+act -1		{"a1":"u:v","B":"a b","b":"true"}
+case 118
+pin a:10,role:x
+pin cmd:true,x:*,B:u:v
+pin role:*,role:*,a1:*
+pin cmd:*,a-b:a b,k_2:-1
+pin role:*
+pin a :*,role:*,cmd:*
+pin a:x,role:10,x:10
+act 4	role:true,x:u:v,a-b:2,a:x	
+actE 3	cmd:ping,a-b:a b,k_2:-1
+act -1	cmd:1.5,a-b:a b	{"cmd":1.5,"a-b":"a b","k_2":"ping"}
+act 4	a-b:u:v,x:2,role:2	
+act 4	a:x	{"role":"u:v"}
+act 4	role:u:v,b:1,cmd:u:v	
+act 4	role:u:v	{"a":"a b"}
+act 4	zz:1	{"role":"1.5"}
+case 119
+pin b:x
+act -1		{}
+act 0	b:x,x:1	
+act -1	b:-1	
+act 0		{"b":"x"}
+act 0		{"b":"x","a1":"1","a":"-1"}
+act 0	b:x	
+act -1	b:-1	
+actE 0	b:x
+case 120
+pin a:ping,x:*,a1:*,B:-1
+pin b:a b
+pin a1:*,a:u:v,x:*,b:10
+pin b:true,a1:*
+pin x:a b
+pin a-b:*,a:true
+pin a:1.5
+act 1		{"a1":"1.5","a":"u:v","x":"true","b":"a b"}
+act 4		{"x":"a b","B":"a b","b":"x"}
+act -1		{"k_2":"2"}
+act -1		{"a1":"-1","a":"2","k_2":1.5}
+act -1	b:1.5	
+act 3		{"b":"true","a1":"u:v","a-b":"x"}
+act -1	a:true	
+act 1	b:a b	
+case 121
+pin b:u:v,k_2:*
+pin k_2 :*,B:x,cmd:x
+act -1	k_2:a b,B:x,cmd:2,x:ping	
+act -1	k_2:2,cmd:x,role:1.5	
+act 0	b:u:v	{"k_2":"true"}
+actE 1	k_2:10,B:x,cmd:x
+act -1	b:u:v	
+actE -1	b:-1,k_2:ping,cmd:10
+act 0	b:u:v	{"k_2":"u:v","B":null}
+act 0	b:u:v,k_2:true,a-b:1.5	
+case 122
+pin role:a b,cmd:*
+pin cmd:a b,b:10,a:*
+pin a1:*,role:*,a-b:*
+pin b:*,B:x,a1:1.5,a-b:*
+act -1	b:-1,B:x	{"a1":"u:v","a-b":"ping"}
+act 1	cmd:a b,b:10,a:1	{"a1":"a b"}
+act 1	cmd:a b,b:10,a:a b,k_2:10	
+act -1		{"cmd":"a b","a-b":"ping","B":"true"}
+actE 0	role:a b,cmd:x
+actE 3	b:1.5,B:x,a1:1.5,a-b:u:v,cmd:2,role:10
+act -1	zz:1	{"role":"a b"}
+actE 3	b:true,B:x,a1:1.5,a-b:2
+case 123
+pin cmd:10,x:*
+pin b:*,B:true,cmd:*
+pin x:1.5
+pin k_2:*,B:1.5,a1:*
+pin x:*,cmd:a b
+pin b:*,x:-1,k_2:2,a:*
+pin a-b:*
+act -1	cmd:true,x:u:v	{"cmd":"true","x":"u:v"}
+act -1		{}
+actE 6	a-b:10
+act -1	k_2:1.5,B:true	
+actE -1	b:-1,x:-1,k_2:x,a:1.5
+actE 2	x:1.5,a:-1
+act -1	zz:1	{"cmd":"2","k_2":"u:v","B":"u:v","a":"2"}
+act 6	a-b:1.5	
+case 124
+pin B:a b
+pin a-b:2,b:*
+actE 1	a-b:2,b:1.5
+act 0		{"B":"a b"}
+act -1	zz:1	{"B":"10"}
+act 0	B:a b	
+act -1	B:u:v,cmd:ping	
+act 1	a-b:2,b:1.5,k_2:2	
+act -1	a-b:ping	{"cmd":"ping"}
+act -1	B:x,b:u:v	
+case 125
+pin a:*,B:ping,k_2:1.5
+pin b:x
+pin a-b:ping,cmd:x,k_2:true
+pin b:1,B:*
+pin cmd:-1,a1:*
+pin k_2:true,b:1,a-b:2,a1:*
+pin role:1
+act 1		{"b":"x","k_2":"u:v","a-b":1}
+act -1	a-b:-1,a1:u:v	
+act -1		{"cmd":"10","role":"u:v","k_2":"1","b":[1,2]}
+act -1	a-b:1.5,cmd:true	
+act 1	b:x,cmd:2	
+act -1		{"a-b":"ping","cmd":"a b"}
+actE 2	a-b:ping,cmd:x,k_2:true
+actE 3	b:1,B:x,cmd:1
+case 126
+pin k_2:*,a-b:*,role:-1
+pin k_2:1,b:1
+pin a1:*,cmd:2
+pin a-b:ping,b:a b
+act 3	a-b:ping,b:a b	
+act 3	a-b:ping,b:a b	
+act -1	b:a b,x:x	{"b":"a b","x":"x","a1":"2"}
+act 0		{"k_2":"2","a-b":"10","role":"-1","x":"1","a":"a b"}
+act 0	k_2:1.5,a-b:2,role:-1,B:u:v,a:a b	
+actE 0	k_2:ping,a-b:true,role:-1
+actE -1	a1:1.5,cmd:-1,a:ping
+actE -1	a-b:1.5,role:-1
+case 127
+pin a:1.5
+pin k_2:u:v,b:u:v
+pin a-b:*
+pin b:1,a-b:*
+pin k_2:*,cmd:a b,B:*,b:2
+pin a:*,b:-1
+pin B:*,cmd:-1
+actE 3	b:1,a-b:a b,B:u:v
+actE 2	a-b:1.5
+act 2	a-b:a b	{}
+act -1	k_2:u:v,b:-1	
+act -1	zz:1	{}
+act 0	a:1.5,b:1.5,x:1	
+act 3		{"b":"1","a-b":"a b","a1":"a b","k_2":"true"}
+act 2	a-b:-1,x:true,role:a b	
+case 128
+pin a-b:*,role:ping,x:1.5
+pin k_2:*,cmd:*
+pin a1:*
+act -1		{"a-b":"a b","role":"true","x":"1.5","b":"2"}
+act -1	a-b:x,role:ping,cmd:1.5	
+act 0	zz:1	{"a-b":"1.5","role":"ping","x":"1.5","k_2":"true"}
+actE -1	a-b:u:v,k_2:-1
+act 0	a-b:a b,role:ping,x:1.5,a:true	
+act 1	k_2:x,cmd:u:v,a:a b	
+act 0	a-b:a b,role:ping,x:1.5,a:a b	
+actE 2	a1:x,role:u:v
+case 129
+pin a:*
+pin k_2:10,a1:a b,a:true
+pin role:-1
+pin B:u:v,a1:*
+pin B:ping,a:*
+act 0		{"a":"ping"}
+act -1	k_2:10,a1:a b	
+actE -1	a-b:10
+act -1	role:10	
+act 2		{"role":"-1"}
+act 1		{"k_2":"10","a1":"a b","a":"true"}
+act 0	a:true	
+actE -1	k_2:10,a1:a b,b:1.5,x:1.5
+case 130
+pin a1:1.5,role:*,cmd:-1,B:ping
+pin a-b:*,role:*,k_2:10,B:2
+pin cmd:*,k_2 :1,a-b:a b
+act -1	a1:1.5,cmd:-1,B:2,a:1	
+act -1		{"a-b":"u:v","role":"ping","k_2":"10","x":"1.5"}
+actE -1	x:1.5,b:u:v,role:true
+act 0	a1:1.5,role:true,cmd:-1,B:ping,b:ping	
+act -1	zz:1	{"k_2":"1"}
+act -1		{"x":"u:v","a1":"true","b":"ping"}
+act -1		{"role":"ping","cmd":"-1","B":"ping"}
+act -1	b:-1,a1:2	
+case 131
+pin a1:*,k_2:*,a:*
+pin role:ping
+pin a:*,b:1
+pin role:-1,B:true
+actE 1	role:ping,a-b:2
+act -1	role:-1,B:ping,a-b:1	
+act 0		{"a1":"a b","k_2":1.5,"a":"a b","x":1.5}
+act 3	role:-1	{"B":"true","cmd":"u:v"}
+act -1	zz:1	{"role":"2","a":"1","a-b":"x"}
+act -1	b:-1,k_2:u:v	
+actE -1	a:1.5,a-b:u:v
+act 3		{"role":"-1","B":"true"}
+case 132
+pin x:true,B:*
+pin B:1.5,a-b:*,role:ping
+pin a:*,cmd:2,B:a b
+pin b:x,a1:-1
+pin a-b:10,cmd:*
+act 0		{"x":"true","B":"u:v"}
+act -1		{"B":"1.5","a-b":"x","a":"true"}
+act 2	a:2,cmd:2,B:a b,x:u:v	
+act -1	B:1	{"a-b":"2","role":"ping"}
+act -1	a:a b	{"cmd":"2","b":"x"}
+act -1	k_2:a b,x:true,role:10	{}
+act 0		{"x":"true","B":"1.5","a-b":"-1","cmd":"u:v"}
+actE 0	x:true,B:true
+case 133
+pin a1:*,k_2:u:v,x:-1
+pin cmd:*,a:-1,x:*,role:10
+actE 0	a1:1,k_2:u:v,x:-1
+act -1	cmd:1,x:x,role:10	
+act -1	cmd:x,x:2,role:10	
+act -1	B:x,a-b:1,a1:a b	
+act -1	cmd:u:v	{"a":"1","x":"1.5","role":"10","a-b":"a b","k_2":"-1"}
+act 0	a1:true,k_2:u:v,x:-1	
+act -1		{"cmd":"a b","x":"10","role":"10","a":"2"}
+actE 1	cmd:true,a:-1,x:x,role:10
+case 134
+pin k_2:x,cmd:*,x:-1,a-b:x
+pin a1:*,role:ping
+act -1	a-b:1,role:-1	
+act 1		{"a1":"a b","role":"ping","B":-1,"a-b":2}
+actE 1	a1:x,role:ping
+act -1	zz:1	{"k_2":"x","x":"-1","a-b":"x","B":"ping","a1":1.5}
+act 1	a1:2,role:ping	
+act -1	k_2:2,cmd:1.5,x:-1,a-b:x	
+act 1		{"a1":"10","role":"ping","k_2":"a b"}
+act 0	k_2:x,cmd:a b	{"k_2":"x","cmd":"a b","x":"-1","a-b":"x","role":"a b","a1":"true"}
+case 135
+pin a1:a b,a-b:u:v
+act 0	a1:a b,a-b:u:v	
+act 0		{"a1":"a b","a-b":"u:v","k_2":"2","B":"u:v"}
+act 0	a1:a b,a-b:u:v,x:2	
+act -1	a1:x,a-b:a b,cmd:1.5	
+act -1		{"a1":"x","a-b":"u:v","B":null}
+act -1		{"a1":"1.5","a-b":"1","k_2":"true","B":10}
+act 0	a1:a b,a-b:u:v	
+actE -1	a1:u:v,a-b:-1
+case 136
+pin B:a b,a :10
+pin role:x,a-b:-1,cmd:*
+pin k_2:*,a:*,b:*,x:10
+pin x:*,b:1,b:*
+act 2	zz:1	{"k_2":"1","a":"1","b":"2","x":"10"}
+act -1		{"B":[1,2],"a":"1","x":"1.5"}
+act -1	k_2:-1,a:x,b:a b,x:u:v	
+act -1		{"a-b":{"a":1}}
+act -1		{"b":"1","a":null}
+act -1		{}
+act 2	k_2:1.5,a:ping,b:1	{"x":"10","B":2}
+act -1	a:x,b:1.5	{"a":"x","b":1.5,"x":"10"}
+case 137
+pin a:ping,a-b:ping,x:x,b:true
+pin b:-1,a1:-1
+pin k_2:10
+pin role:1.5,a1:*,b:a b
+pin a-b:true
+pin a1:10,x:2,k_2:ping
+pin a-b:u:v
+act 6	a-b:u:v,a1:-1	{}
+actE -1	k_2:1.5,a:1,role:-1
+act -1	b:1.5,B:true	
+act -1	zz:1	
+act 3	role:1.5,a1:true,b:a b,a-b:2	
+act -1	role:-1,a1:a b	{"b":"2","a-b":"a b"}
+actE -1	role:u:v,b:a b
+act -1	x:-1,cmd:ping	{"a":"u:v"}
+case 138
+pin role:1.5,B:*
+pin k_2:1.5,role:ping,a-b:a b
+pin a1:*
+pin cmd:-1,a1:*
+pin x:*
+act -1	role:10,B:a b	{"a":"-1"}
+act -1		{"cmd":"1.5","b":"-1"}
+act -1		{"B":"1.5"}
+act 2	a1:a b	
+act -1	B:ping	
+act -1		{"b":"1.5"}
+actE -1	k_2:x,role:ping,a-b:a b
+actE 4	x:true
+case 139
+pin x:1,b:*
+pin a1:*,k_2:x
+pin a-b:ping,B:10,cmd:1.5,x:true
+pin B:u:v
+pin B:*
+pin x:2,a-b:*,b:u:v,cmd:true
+actE 3	B:u:v,a-b:10,k_2:a b
+actE 4	a-b:2,B:10,cmd:1.5
+act 4	B:10	
+actE 3	B:u:v
+act 4	B:10,x:ping	
+act 4	a-b:ping,B:10,x:true	
+act 0	x:1	{"b":"2","a-b":"1.5"}
+act -1	zz:1	
+case 140
+pin role:a b,a1:a b,k_2:1
+pin a:true
+pin B:*,a1:-1,cmd:1
+pin x:*,a1:1.5
+pin cmd:-1,role:*,a1:x
+pin b :1
+actE -1	cmd:10,role:-1,a1:x,a-b:1
+act 2		{"B":"10","a1":"-1","cmd":"1"}
+act 4	cmd:-1,role:1,a1:x,b:ping	
+act -1	zz:1	{"b":"ping","cmd":"2"}
+act -1	b:1,a:-1	
+act -1		{"x":"ping","a1":"2"}
+actE -1	role:a b,a1:10,a-b:10
+act -1	b:-1,a-b:1	
+case 141
+pin a:*,k_2 :*,a-b:*,x:*
+pin a1:true,a:true,k_2:ping
+pin a1:*
+pin k_2:a b
+act 1		{"a1":"true","a":"true","k_2":"ping","cmd":"10"}
+act 3	zz:1	{"k_2":"a b"}
+act 0	a:true,k_2:a b,a-b:1.5,x:a b	
+act 2	zz:1	{"a1":"2","cmd":"a b","a":"1"}
+act -1	k_2:1.5,x:true	
+act 2	a1:true,k_2:x,a-b:x	
+act 2	a1:2,a:true,k_2:ping	
+act 3		{"k_2":"a b"}
+case 142
+pin k_2:1,b:*,B:true
+pin a:x,x:*,B:*
+pin x:u:v,k_2 :*,a1:*
+pin b:10,a :u:v,role:*
+pin b:-1,a1:2,x:true,role:1.5
+pin x:u:v
+pin role:ping,cmd:*,k_2:-1
+act 5	x:u:v	
+act 5	x:u:v,role:-1	
+act -1	a:1.5	{"b":"u:v"}
+actE 2	x:u:v,k_2:1.5,a1:u:v
+act -1	b:-1,a1:1.5,x:true,role:1.5	
+actE -1	k_2:1,b:2
+act 5	x:u:v,k_2:true	
+act 5	b:10,a:u:v,role:ping,k_2:ping,x:u:v	
+case 143
+pin role:x
+pin cmd:*,a:2
+act 0		{"role":"x","b":"ping","a":"true"}
+act 1	cmd:x,a:2	
+act 1	cmd:a b,a:2	
+act -1	cmd:10,a:-1,a-b:1	
+act 0		{"role":"x","a":"u:v","B":"-1"}
+actE 0	role:x
+act -1		{"a-b":"true","k_2":"2"}
+act -1	role:1	{"role":"1","x":"a b","k_2":"-1"}
+case 144
+pin cmd:1.5,x:*
+pin a1:true
+pin role:a b
+pin cmd:*,role:10,a:*
+pin B:u:v,k_2:*,a:*
+pin a-b:-1,role:10,B:*
+act -1		{"B":"-1","k_2":"2","a":1,"b":"u:v"}
+act 0	cmd:1.5,x:1.5,role:2	
+act 2	role:a b	{"a":"-1"}
+actE -1	a1:1,B:a b,b:1
+act -1	role:1,a1:1,a-b:ping	
+act 1	a1:true,a:true,x:1	
+act 5		{"a-b":-1,"role":"10","B":"ping"}
+act 3	cmd:true,role:10,a:-1	
+case 145
+pin x:10,a-b:*,a1:x
+pin role:a b
+pin B:*,role:*,a-b:*,k_2:*
+pin a:*,cmd:*,B:x
+act 3	a:10,cmd:-1,B:x,role:x,a1:10	
+act 1	role:a b,cmd:u:v	
+act -1	zz:1	{"b":2}
+act 1		{"role":"a b","x":"10","a":"10"}
+act 2	B:2,role:u:v,a-b:a b,k_2:1.5	
+act 1	role:a b,a:1.5	
+actE -1	
+act -1	zz:1	{"B":"1","b":"1.5","k_2":"ping"}
+case 146
+pin x:*
+pin a1:ping
+pin b:u:v
+pin role:true
+pin a:2,cmd:1
+pin a1:*
+pin b:*,x:*
+actE 3	role:true,cmd:-1
+act 3	role:true	
+act -1		{"role":"2","a-b":"1.5"}
+actE 4	a:2,cmd:1
+act 6		{"b":1,"x":"-1","cmd":"-1"}
+act 6		{"x":"10","b":"a b"}
+act 1	a1:ping,x:1.5	{}
+act 1		{"B":"1","a1":"ping"}
+case 147
+pin cmd:-1
+act 0	cmd:-1	
+actE -1	cmd:1.5,a:true
+act 0		{"cmd":"-1"}
+act 0	cmd:-1,role:ping,x:u:v	
+act 0	cmd:-1,k_2:ping	
+act 0	cmd:-1	{}
+act 0	cmd:-1,a1:a b	
+actE 0	cmd:-1,role:2
+case 148
+pin a1:*,b:ping,cmd:ping
+pin cmd:*,k_2:-1
+pin k_2:2
+act -1	zz:1	{"cmd":"1","k_2":"u:v","b":"1"}
+act -1	zz:1	{}
+act 2	k_2:2,cmd:ping	
+act -1	b:-1,a1:a b,B:u:v	
+act -1	zz:1	{"role":"ping"}
+actE -1	cmd:ping,x:u:v,a-b:2
+act -1	zz:1	{"b":"ping","cmd":"x","k_2":"u:v"}
+act 2	k_2:2	{}
+case 149
+pin a-b:*,B:1.5
+pin a:*
+pin x:1.5
+act 0		{"a-b":"x","B":1.5,"b":"x"}
+act 1		{"a":"2","cmd":"-1"}
+act 0		{"a-b":"a b","B":"1.5","k_2":"1"}
+act -1	cmd:2,b:a b	{"a-b":"-1"}
+actE 1	a:1,k_2:u:v
+act 2	x:1.5,a1:1	
+act 1	a:a b	
+act 2		{"x":"1.5","role":"1"}
+case 150
+pin k_2:a b
+pin cmd:*,k_2:ping,a:*
+pin a-b:a b,role:*,b:ping
+pin a:*,x:*
+pin a-b:x,a:true,b:true,a1:*
+act 4	a-b:x,a:true,b:true,a1:ping	
+act -1		{"a-b":"x","a":"true","b":2,"a1":"a b"}
+act 3	zz:1	{"a":"ping","x":"2","b":"1"}
+act -1		{"role":"1.5","b":"ping"}
+act -1		{"a-b":"1","a":"true","b":"true","a1":-1,"B":null}
+act -1	k_2:1.5	{}
+act 4	zz:1	{"a-b":"x","a":"true","b":true,"a1":"a b"}
+actE 1	cmd:10,k_2:ping,a:-1
+case 151
+pin a1:-1,B:*
+pin a-b:*,k_2 :*
+act -1		{"b":"1"}
+actE 1	a-b:a b,k_2:a b,x:x,cmd:true
+act 0	a1:-1	{"B":"1.5","a":"1.5","b":{"a":1}}
+actE 1	a-b:2,k_2:1
+act 0	a1:-1,B:u:v,x:10	
+act 1	a-b:x,k_2:1.5,a1:-1	
+act -1	role:-1,B:2,a1:10	
+act 0	zz:1	{"a1":"-1","B":"1.5"}
+case 152
+pin a:1.5,x:-1,B:ping,k_2:x
+pin b:*
+pin a:true
+pin k_2:-1,a-b:*,B:u:v
+pin k_2:10,role:10,cmd:*
+act 2	a:true	
+act -1		{"a":"a b","B":"u:v"}
+act 2	a:true	{"role":"1.5"}
+act -1	zz:1	{"role":"10","a-b":"u:v"}
+act -1		{"a":"1","x":"true","B":"1.5"}
+act 2		{"a":"true","B":"u:v"}
+actE 1	b:true,role:10
+act -1	a:1.5,x:-1,B:u:v,k_2:x,a1:-1	
+case 153
+pin a1:10,b:ping,k_2 :*
+pin cmd:1.5,b:*,a1:1
+pin b:*
+pin a:*,a-b:*,role:-1,a1:*
+pin a-b:x,a:1.5
+act 2	a1:10,b:2,k_2:2	
+act 0		{"a1":"10","b":"ping","k_2":"-1","role":"ping"}
+act 2	zz:1	{"a1":"u:v","b":"1","k_2":"1.5","x":"2"}
+actE 0	a1:10,b:ping,k_2:1.5
+act 2		{"b":"x"}
+actE 0	a1:10,b:ping,k_2:a b
+actE 3	a:1,a-b:ping,role:-1,a1:1
+act 2	zz:1	{"b":"x","a1":"1","x":"2"}
+case 154
+pin k_2:*,role:*
+pin a:2,b:u:v,role:2,a-b:ping
+pin a:2,a-b:*
+pin a1:*,B:*,x:10,a-b:x
+pin a:a b
+act 0	role:-1,a-b:-1,k_2:-1	
+act 4	a:a b	{}
+actE 0	k_2:u:v,role:1,B:1
+act -1		{"a":"-1","a1":null}
+act 4		{"a":"a b","a-b":"10","x":"ping"}
+act 4	a:a b,b:-1	{}
+actE 1	a:2,b:u:v,role:2,a-b:ping,a1:u:v,B:u:v
+act -1		{"a1":"1","x":"u:v","cmd":"u:v"}
+case 155
+pin k_2:1.5,a-b:a b,cmd:a b
+pin B:2,x:*,k_2:1
+pin role:x,cmd:*,B:1
+act -1		{"role":"x","cmd":"-1","B":"10"}
+act -1		{"k_2":"x","a-b":"a b","cmd":"a b"}
+act -1		{"a-b":"ping","cmd":"a b","a1":"x"}
+act -1	zz:1	{"k_2":"1.5","a-b":"-1","cmd":"true"}
+actE -1	a-b:a b
+act 1	B:2,x:1	{"k_2":"1","a-b":"-1","a":"ping"}
+act -1		{"k_2":[1,2],"a-b":"ping","cmd":"a b"}
+actE -1	B:2,x:1.5,k_2:10
+case 156
+pin a1:1,role:u:v,B:1
+pin a-b:10,cmd:10,x:*,role:-1
+pin B:a b,B:x,b:*
+pin x:2
+act 3	x:2	
+act 3	x:2	{}
+act 0	a1:1,role:u:v,B:1,a:ping,b:1.5	
+actE -1	a-b:10,cmd:10,x:ping,role:true
+act -1	B:x,a-b:-1	{}
+actE -1	a:ping
+actE 0	a1:1,role:u:v,B:1,a:1
+actE -1	k_2:1,a:true
+case 157
+pin x:true,a-b:10,role:*
+pin cmd:*,b:*,a1:*
+pin k_2:2,b:x
+pin a1:*,x:*
+pin a1:*,cmd:*
+pin b :*
+actE 2	k_2:2,b:x
+act 4		{"a1":"ping","x":"x","cmd":"u:v","B":"a b"}
+act 5		{"b":"u:v"}
+act 0	x:true	{"a-b":"10","role":"1"}
+act 4		{"a1":"1.5","cmd":"1.5"}
+act 5		{"cmd":"x","b":"ping","a1":{"a":1},"a-b":"x"}
+actE 1	cmd:2,b:ping,a1:x
+act 1		{"cmd":"1.5","b":"true","a1":"ping"}
+case 158
+pin B:ping
+pin k_2:*
+pin role:ping,B:2
+pin a1:*
+act 0	B:ping	
+act 0	zz:1	{"B":"ping","k_2":"a b"}
+act 1	k_2:a b	
+act 3		{"a1":"a b","role":"ping"}
+act 0	B:ping	
+act 3	a1:x	{"a1":"x","B":null}
+actE 1	k_2:x,x:1.5
+act 3	a1:u:v,a-b:1	
+case 159
+pin x:2,a1:*
+pin B:1.5,a1:1.5,k_2:1.5,cmd:u:v
+pin B:ping,a:ping
+pin a-b:1.5
+pin a1:x
+pin cmd:2,B:u:v,b:*
+pin k_2:x,x:*,role:-1
+actE 3	a-b:1.5,a:a b,a1:ping
+act 2	B:ping	{"B":"ping","a":"ping","a-b":-1}
+act 5	cmd:2,B:u:v,b:u:v,a:u:v,role:ping	
+act 3		{"a-b":1.5}
+actE 0	x:2,a1:u:v,a:ping
+actE 5	cmd:2,b:10,B:u:v
+act 6	k_2:x,x:true,role:-1,a1:a b	{"cmd":"x"}
+act 4		{"a1":"x","cmd":"1.5","k_2":"ping"}
+case 160
+pin B:*,cmd:ping,role:10
+pin a1:true,role:*
+pin a-b:a b,cmd:a b,k_2:true
+pin role:*
+pin x:*,cmd:true
+pin B:*,cmd:a b
+act 4		{"x":"10","cmd":"true","role":"2"}
+actE 3	role:2,x:a b,B:1.5
+act 1	a1:true,role:10	
+actE 4	x:true,cmd:true,k_2:a b,a:true
+act 3	b:1.5,role:true,B:1.5	
+act 0	B:1.5,cmd:ping,role:10,b:1	
+act -1	a-b:a b	{"a-b":"a b"}
+act -1		{"x":"10"}
+case 161
+pin b:*,a-b:2,a1:*
+pin b:*,k_2:1.5
+pin role:1
+pin a-b:u:v,a:true
+act 1		{"b":"x","k_2":"1.5"}
+actE 3	a-b:u:v,a:true
+act -1	a-b:u:v	{"a":"x"}
+act -1	a-b:u:v,a:2	{}
+act 3	a-b:u:v,a:true	
+act -1	a-b:u:v,B:true	
+act -1	zz:1	{"a-b":"u:v","a":"1.5","B":"true","cmd":{"a":1}}
+act -1	b:ping,k_2:10	
+case 162
+pin cmd:10,x:1.5
+pin role:true,b:*,a1:1
+act -1	role:-1,b:-1,a1:1,B:true	
+act -1	x:1.5,k_2:1,B:2	
+actE -1	a:10
+act 0	cmd:10,x:1.5,b:x,a1:1.5	
+act -1	role:true,b:a b,a1:-1,a:ping	
+actE 1	role:true,b:1.5,a1:1,a-b:-1
+act -1	cmd:10	{"x":null}
+actE 1	role:true,b:10,a1:1,a-b:1.5,cmd:2
+case 163
+pin a-b:*
+pin k_2:ping,a1:*
+pin k_2:*
+pin B:1.5
+pin a1:u:v,k_2:*,role:true,x:1.5
+actE -1	a1:2
+act 2		{"k_2":"2"}
+act 1	k_2:ping,a1:u:v	{}
+act 1	a1:10,k_2:ping,x:1.5,a:x	
+actE 1	k_2:ping,a1:2
+actE 0	k_2:ping,x:1.5,a-b:a b
+actE 0	a1:u:v,role:true,x:1.5,B:a b,a-b:2
+act -1	a1:1	
+case 164
+pin x:a b
+pin a1:*
+act 0		{"x":"a b"}
+act -1	zz:1	
+actE 0	x:a b,cmd:u:v,a1:2
+act 0	zz:1	{"x":"a b"}
+act 0		{"x":"a b","B":"10"}
+act 1	a1:1,a:a b,x:x	
+act 1	a1:a b,k_2:x	
+act 1	a1:1.5	
+case 165
+pin B:*
+pin a:*,a1:1.5,k_2:*
+act -1	a:1.5,k_2:10,a1:10	
+act -1	k_2:-1	
+act 1	a:ping,a1:1.5,k_2:x	
+actE 0	B:u:v,cmd:a b
+act -1		{"a":1.5,"k_2":"true"}
+actE 0	B:ping,x:-1
+act -1		{"a":"a b","k_2":"2","a1":1}
+act 0	B:-1,role:1,k_2:10	{"B":"-1","role":"1","k_2":"10"}
+case 166
+pin a-b:1,a:true
+pin role:*
+pin cmd:a b,a-b:1,b:true
+pin b:*,k_2:*
+pin k_2:u:v,cmd:u:v,a-b:*
+actE 0	a-b:1,a:true,B:2,a1:2
+act 1		{"role":"u:v"}
+act 1	role:a b	{"a1":"1.5"}
+act -1		{"a-b":"ping","a":"true","x":{"a":1}}
+act -1	b:ping	{"x":"-1"}
+actE 1	role:10
+act 2		{"cmd":"a b","a-b":"1","b":"true"}
+act -1	a-b:a b,a:true,b:1,B:x	
+case 167
+pin role:1.5
+pin a-b :x
+pin role:1.5,a:*,B:10
+pin k_2:1.5
+pin cmd:*,b:10,a:a b
+pin k_2:u:v,b:1.5,a:*,a-b:u:v
+act 3	k_2:1.5	{"B":"x"}
+actE -1	k_2:u:v,b:x,a:10,a-b:u:v
+act -1	a-b:x	
+act -1	b:10,a:a b	{}
+act -1	a-b:a b,B:x,b:true	
+act 0	role:1.5,a1:x	
+act 0	zz:1	{"role":"1.5"}
+act -1		{"a-b":"u:v","x":"u:v"}
+case 168
+pin x :1.5
+pin x:*,role:*,a1:-1,k_2:*
+pin k_2:1,a1 :2,B:1.5
+pin role:x,B:true
+pin a1:1.5,cmd :1.5
+pin x:*,a:a b
+actE 5	x:true,a:a b
+act 1		{"x":"true","role":"x","a1":"-1","k_2":1.5,"B":"ping"}
+act -1		{"x":"-1","role":"2","k_2":"x"}
+act -1		{"B":"true","a1":"a b","a":"10","x":"-1","cmd":"1.5"}
+act -1		{"x":"1.5","k_2":"true"}
+act -1		{"B":"true","k_2":"x"}
+act -1	k_2:1,a1:1.5,B:u:v,cmd:true	
+act -1		{"x":"x","k_2":"true"}
+case 169
+pin cmd:2,k_2:true,B:*
+pin k_2:*,x:u:v,B:2,a1:10
+pin cmd:*,a1:-1
+pin a-b :*,k_2:-1
+pin x:a b,role:*
+pin k_2:1.5,B:*
+act -1		{"b":"x","a":"1.5"}
+act -1	zz:1	{"cmd":1,"a1":"1","a-b":"ping"}
+act 5		{"k_2":"1.5","B":"1.5"}
+actE 2	cmd:10,a1:-1,B:10,b:-1
+act -1		{"cmd":"10","k_2":"true","B":"-1"}
+act -1		{"cmd":2,"B":"1","a1":"1.5","a-b":"a b"}
+actE -1	k_2:ping,x:u:v,B:2,a1:u:v
+act -1	x:-1,role:1	
+case 170
+pin B:2,x:*
+pin cmd:1.5,b:a b,k_2:*,role:1
+pin a1:*,a:u:v
+pin a:*
+pin a1:1,b:ping
+actE 3	a:2,cmd:2
+actE 3	a:2
+act -1	a1:1.5,b:ping,cmd:10	
+act -1		{"b":"-1","a-b":"2","cmd":"x","a1":"ping"}
+actE 4	a1:1,b:ping,x:2
+act 3	a:10,b:true	
+act 4	a1:1,b:ping,k_2:1,x:1.5	{}
+act 0		{"B":"2","x":"10"}
+case 171
+pin B:x,a:1
+pin role:1.5
+pin cmd:*,a1:*
+pin k_2:1
+pin a:*,role:*,a1:*,cmd:*
+pin a:true
+pin k_2:a b,a1:*,a:1.5
+act -1		{"k_2":"a b","a1":"1","a":"x"}
+act -1	a1:10	
+act 2		{"k_2":"x","a1":"-1","cmd":"-1"}
+act -1	B:x,a:-1,role:1	
+act 4	zz:1	{"a":"x","role":"u:v","a1":"u:v","cmd":"10"}
+act 4	a:2,role:2,a1:-1,cmd:x	{"B":"1.5"}
+act 4		{"a":"a b","role":"u:v","a1":-1,"cmd":"x"}
+actE 1	role:1.5
+case 172
+pin b:x
+pin cmd:*
+pin a-b:*,role:*
+act 1	cmd:1,role:1,b:1.5	
+act 0	b:x	
+actE 0	b:x,a1:x
+act -1		{"a-b":"u:v"}
+act 2	a-b:-1,role:a b	
+act -1		{"b":"a b"}
+act 0	b:x,k_2:-1,a1:1.5	
+act 1	zz:1	{"cmd":"1.5"}
+case 173
+pin a1:1.5,x:*,k_2:*
+pin b:1.5,role:1.5
+pin b:2
+pin x:*,a1:2
+pin role:10,cmd:*
+pin k_2 :*,x:2,a-b:*
+act -1		{"a1":"-1","b":"ping"}
+act 5		{"k_2":"2","x":"2","a-b":"1","role":"1.5"}
+actE 5	k_2:2,x:2,a-b:u:v,role:10
+act -1	zz:1	{"b":"-1"}
+act 3	x:1.5,a1:2	
+act -1	zz:1	{"b":"10","x":"u:v","cmd":{"a":1}}
+act 2	b:2,a-b:10	
+actE -1	k_2:ping,b:true,role:-1
+case 174
+pin B:*,k_2:a b
+pin k_2:10
+pin b:1
+pin b:2
+pin k_2:-1
+pin b:true,B:10,a:-1,x:1
+act 0	B:1,k_2:a b	
+act 2	b:1	{}
+act 1		{"k_2":"10","a-b":"-1"}
+actE -1	a:2,b:x
+act -1	b:true,B:true,a:-1,x:1,a1:x	
+act 0	B:x,k_2:a b,x:u:v	
+act -1	role:ping,cmd:2,a:true	
+act 3		{"b":"2","a-b":"1.5"}
+case 175
+pin a-b:-1,a1:10
+pin a-b:*,role:true
+pin x:a b,role:a b,a1:2
+pin k_2:true,x:x,B:*,cmd:1.5
+pin cmd:*
+pin x:10,k_2:*,b:*
+pin a:1.5
+act -1	x:a b,role:u:v,a1:ping	
+act 6	a:1.5,b:x,x:1	
+actE 4	cmd:a b
+act 4	cmd:1.5,role:u:v	
+actE -1	x:a b,a:10
+act 4		{"cmd":1,"x":"u:v"}
+act 4	zz:1	{"cmd":-1,"x":"ping"}
+act 5	x:10,k_2:x	{"b":"1.5"}
+case 176
+pin x:*,role:*,k_2:*
+pin cmd:1,a:ping
+act 1		{"cmd":"1","a":"ping"}
+actE -1	b:true,a:x,role:a b
+actE -1	cmd:1,k_2:true,a1:true
+act 1	cmd:1,a:ping,a-b:ping,k_2:10	
+act -1	role:ping,k_2:u:v,cmd:x,a1:true	
+act 1	cmd:1,a:ping	
+act 0	x:x,role:a b,k_2:u:v	{"a1":"1.5"}
+act 0	x:1,role:ping,k_2:x	
+case 177
+pin a-b:*
+act 0	a-b:1	
+actE -1	a:1
+act 0	a-b:ping	{"k_2":"10"}
+act -1	zz:1	
+act 0	a-b:10,a1:ping	
+act 0	a-b:ping	{"a":"u:v"}
+act 0	a-b:10	
+act 0	zz:1	{"a-b":"a b"}
+case 178
+pin B:*,cmd:2,role:*
+act 0	B:2,cmd:2,role:-1	
+act 0		{"B":"true","cmd":"2","role":"u:v","a":"ping","a-b":[1,2]}
+act -1		{"B":2,"cmd":"true","x":"ping"}
+actE -1	B:true,cmd:x,role:u:v
+actE -1	B:1.5,cmd:2,a-b:1.5
+act 0	B:2	{"B":"2","cmd":"2","role":"x","x":"1.5"}
+act 0		{"B":"2","cmd":2,"role":"x","a-b":"x"}
+actE 0	B:1,cmd:2,role:x
+case 179
+pin b:-1,a1:*
+pin cmd:*
+pin k_2:1.5
+pin B:ping,a :*,a-b:1.5
+pin x:u:v,a-b:true
+act 4		{"x":"u:v","a-b":"true","cmd":"x"}
+act 4	x:u:v	{"x":"u:v","a-b":"true","B":"a b"}
+act 2		{"k_2":"1.5","a":"a b","role":"u:v"}
+act -1	x:2	
+act 1	zz:1	{"cmd":"a b","x":"a b"}
+actE 1	cmd:x,a-b:1.5,B:2
+act 0		{"b":"-1","a1":"1.5","cmd":"ping","B":1}
+act 0	b:-1,a1:u:v	{"a":"x","B":[1,2]}
+case 180
+pin a1:*,b:ping,role:1.5
+pin a:2,b:*,B:*,x:ping
+pin k_2:*,b:10,B :a b,a:10
+act -1	a:2,B:1.5	{"x":"ping"}
+act -1		{"k_2":"a b","b":"x","B":"a b","a":"10"}
+act -1	k_2:true,b:2,B:a b	{"a":"10"}
+actE -1	a1:1.5,b:2,role:1.5,a:2
+act -1	a1:10	{"b":"true","a-b":"1.5"}
+act -1	cmd:a b,k_2:10	{"role":"10","b":"u:v","B":null}
+act -1	a1:ping,b:u:v,role:1.5	{"x":"ping"}
+act -1		{"a1":"x","role":"1.5","B":"true"}
+case 181
+pin a :*,a-b:1,x:*
+pin cmd :*,a1:x,a:*
+pin role:true
+pin a1:u:v,B :a b
+pin k_2:ping
+pin a:ping
+pin x:x,role:*,a1:*
+act 2	role:true	{"a1":"x"}
+act 2		{"role":"true"}
+actE 2	role:true
+act 6	x:x	{"role":"x","a1":1}
+actE 6	x:x,role:ping,a1:2,a-b:x
+actE -1	a:x,a-b:1.5,x:1.5
+act -1	a-b:1,x:2	
+act -1	a1:u:v	{"a1":"u:v","B":"a b","a-b":"1.5"}
+case 182
+pin x:true,cmd:*,a-b:-1
+pin a:x,a1:a b,a-b:-1
+act -1		{"a":"1","x":"2","B":"x","a1":"10","k_2":"a b"}
+act -1	a:a b,a1:a b,a-b:-1	
+act -1		{"x":true,"cmd":"x","a-b":"2"}
+actE -1	a:u:v,a1:-1,a-b:-1
+act -1	x:true	{"cmd":"x"}
+act 0	x:true,cmd:1.5,a-b:-1,role:ping	
+act -1	a:2,a1:a b,a-b:-1,role:a b	
+act 1	a:x,a1:a b	{"a-b":"-1"}
+case 183
+pin cmd:a b,k_2:*
+pin role:*
+pin a:*,cmd:ping
+pin role:*
+act -1		{"a":"1","cmd":"1"}
+act -1		{"a":"-1","cmd":"1.5","a1":10,"B":[1,2]}
+act 3	role:x,a:1.5	
+act 3		{"role":"x","b":"a b"}
+act 3	cmd:-1,k_2:10,role:1	
+actE -1	cmd:true,x:x,a-b:u:v
+act -1	cmd:ping,k_2:1	{"cmd":"ping","k_2":{"a":1},"x":"10"}
+actE -1	a:2,cmd:2,a1:a b
+case 184
+pin b:10
+pin x:u:v
+pin b:2,k_2:a b,x:*
+pin a-b:u:v,b:a b,a1:true
+pin B:*,x:2,b:-1,a-b:*
+pin b:*
+act 1		{"x":"u:v","a":"ping"}
+act 4		{"B":"x","x":"2","b":"-1","a-b":"-1"}
+actE 1	x:u:v,cmd:true,a:x
+act 5		{"b":"1.5","cmd":"a b","a-b":[1,2]}
+act 5		{"x":"1.5","cmd":"1.5","a-b":"-1","b":"1.5"}
+act 0		{"b":10}
+act 5	k_2:a b,x:ping,b:a b	
+act 4	B:a b,x:2,b:-1	{"a-b":"1","a1":"x","a":"a b"}
+case 185
+pin k_2:*,a:u:v,x:*,cmd:*
+pin a1:x,b:*
+pin cmd:10
+pin cmd:-1,b:*
+pin x:10
+pin k_2:*,B:-1,a-b:ping
+act 1		{"a1":"x","b":"x"}
+act 1	x:10,a1:x,b:1.5	
+actE 4	x:10
+act -1	role:10	
+act 4	x:10	{"cmd":"1","a-b":"true"}
+actE -1	k_2:-1,B:-1,a-b:u:v,a1:x
+act 3	cmd:-1	{"cmd":"-1","b":"10"}
+act 2	cmd:10,a1:ping	{}
+case 186
+pin cmd:*
+actE 0	cmd:a b,k_2:ping,a-b:1
+actE 0	cmd:1.5,x:1
+actE -1	b:x,a:true,k_2:10,a1:10,B:-1
+act 0	B:1.5,a-b:true,cmd:u:v	
+act 0	cmd:-1,a1:true,a-b:true	
+actE 0	cmd:2,a-b:ping
+actE 0	cmd:2,a-b:ping
+act -1		{}
+case 187
+pin x:x,b:*
+pin a1:ping,a:*,x:*,k_2:*
+pin a:-1
+pin B:1.5,cmd:2
+pin a-b:*,x:-1
+pin cmd:a b
+pin x:*,a-b:x,B:1.5
+act 0		{"x":"x","b":"a b"}
+act 0	x:x,b:1.5,a:1	
+act 4	a-b:2,x:-1	
+act 4	x:-1,role:1.5,a-b:1	
+actE -1	a:1.5,k_2:x
+act 0	x:x,b:true	
+act -1	B:1.5,a-b:ping	
+act 0		{"x":"x","b":"x","B":"-1"}
+case 188
+pin a1:*
+pin role:*,k_2:2
+pin x:*,role:1.5,cmd:*
+pin k_2:1,a1:a b,B:a b
+pin role:a b
+act 2	x:ping,role:1.5,cmd:10,k_2:10	
+act -1	x:u:v,cmd:-1,a-b:1.5,a:-1	
+actE 1	role:x,k_2:2
+act 0		{"k_2":"2","a1":"a b","B":"a b","a":"u:v","x":10}
+act 0	a:u:v,a1:a b,role:x,k_2:1.5	
+act 0	a1:1,a-b:1	{}
+act 0		{"a1":"ping","cmd":"a b","b":"10"}
+act -1	k_2:x	
+case 189
+pin x:*
+pin b:x,B:1.5
+pin x:x
+pin a-b:2
+pin role:1,cmd:u:v,b:*
+pin k_2:x
+act 2	x:x	
+act 1	b:x,B:1.5,role:a b	
+act 5	k_2:x,x:10,a:10	
+actE 4	role:1,cmd:u:v,b:10,k_2:-1,a1:ping
+act 3	a-b:2	
+act -1	cmd:ping,b:2	
+act 0	x:ping	
+act -1	role:1,cmd:u:v,k_2:true	
+case 190
+pin cmd:ping,b:*,a:10,a1 :1.5
+pin role:1.5,x:*
+pin role:-1,k_2:a b,b:10
+act -1	cmd:ping,b:x,a:10,a1:1.5,a-b:u:v,role:u:v	
+act -1		{"a1":"2","k_2":"a b","cmd":"u:v"}
+actE 1	role:1.5,x:ping
+act -1	k_2:a b	{"b":"10","cmd":"u:v","role":"true","k_2":[1,2]}
+actE 2	role:-1,k_2:a b,b:10,B:a b
+act -1	role:1.5,k_2:a b,b:10,a1:-1	
+act -1	role:2,k_2:a b	
+act 1	role:1.5,x:u:v,B:a b	
+case 191
+pin cmd:*,a1:1.5
+act -1	a1:1.5	
+act -1	a1:1.5	{}
+act 0	cmd:10,a1:1.5,b:10	{}
+act 0	cmd:u:v	{"a1":"1.5"}
+act -1	cmd:2,a1:2	{"x":1.5}
+act -1	cmd:1.5,a1:u:v,b:u:v	
+act 0	cmd:1.5,a1:1.5,b:1.5	
+act -1		{"cmd":"1","a1":{"a":1},"k_2":"2","x":1.5}
+case 192
+pin x:*,a1:*,k_2:true
+pin b:u:v,cmd:*,role:a b,x:u:v
+pin a1:10,role:*,B:*
+pin k_2:1.5
+pin b:true,a1:*,a:u:v,B:1.5
+act -1	zz:1	{"b":"u:v","cmd":"true","role":"1","x":"u:v","B":"1.5"}
+act -1		{"a1":"1.5","role":"true","B":"true"}
+actE 2	a1:10,role:a b,B:1,b:1.5
+act -1	b:u:v,cmd:a b,role:a b,x:1	{}
+act 2		{"a1":"10","role":"x","B":"2","b":"-1","k_2":"ping"}
+act 3	k_2:1.5,a:-1,role:a b	
+actE -1	a1:2,role:x,B:x
+actE -1	a:u:v,a1:-1,a-b:a b,role:ping
+case 193
+pin cmd:a b,a1:*
+act -1	cmd:a b,b:-1	
+act -1		{"cmd":"a b"}
+act -1		{"cmd":1,"a1":"-1"}
+actE -1	a-b:1.5,x:a b,b:ping
+act 0	zz:1	{"cmd":"a b","a1":"1.5"}
+actE -1	cmd:a b,b:true
+act 0	cmd:a b,a1:ping,role:a b,b:-1	
+act -1		{"a1":"10","B":"true","cmd":"ping"}
+case 194
+pin cmd:u:v,role:x,a:1,b:*
+pin B:-1
+pin role:2,b:1,a:x
+pin a:*
+pin role:*,a-b:x,role:*,B:*
+pin x:*
+pin k_2:1
+actE 3	a:1,B:true,a1:u:v
+actE 4	role:true,a-b:x,B:2
+act 1	B:-1,a1:x	
+act 1		{"B":"-1"}
+act -1		{"role":"1.5","B":"2"}
+act 1		{"x":"x","B":"-1"}
+act -1	b:ping	{"cmd":"2"}
+act 2	role:2,b:1,a:x	
+case 195
+pin B:x,k_2:-1,x:x,role:*
+pin a-b:*,a:1.5,B:true
+pin b:2,a:*,x:*,cmd:1.5
+pin role:10,x:x
+pin a1:-1,a:*
+pin cmd:x
+pin k_2:1
+act 3	role:10,x:x	
+act -1	a:ping,x:ping,cmd:1.5	{"role":"1.5","B":"-1"}
+act -1	b:u:v,k_2:-1	{}
+act 3	role:10,x:x	
+act 6		{"k_2":"1","role":"x","B":"1","b":{"a":1}}
+act 1		{"a-b":"1","a":"1.5","B":"true","role":"u:v"}
+actE -1	k_2:-1,x:u:v,role:10,a1:u:v
+act 6		{"k_2":"1","a-b":"1","B":"a b"}
+case 196
+pin B :1,k_2:a b
+pin a1:*
+pin k_2 :*
+pin k_2 :*,a1:-1,b:1.5
+act 2	B:1,k_2:a b	
+actE -1	B:2,b:ping
+act 1	k_2:true,a1:a b,b:1.5,a-b:u:v	
+act 1		{"a1":"u:v","b":{"a":1}}
+act 1	a1:x,b:x,k_2:1.5	
+act 2	B:1,k_2:a b	
+act 1	role:u:v,x:x,cmd:ping,a1:a b	
+act 1	a1:-1,b:1.5,a-b:a b	
+case 197
+pin x :*,k_2 :1,a1:-1
+pin B:1,k_2 :a b
+pin a1:1,B:*,b:*
+pin role:*,a1:-1
+pin B:10,x:10,cmd:ping
+pin a-b:*,b:*,a1:1
+pin a-b:*
+actE -1	role:u:v,a1:1.5
+act -1	cmd:true,b:ping	{"x":"ping","role":"10"}
+act -1		{"x":"10","k_2":"1","a1":"-1"}
+act 3	role:1,a1:-1	
+act 6		{"a-b":"true","a1":"u:v","k_2":"2"}
+act 3	zz:1	{"role":"2","a1":"-1"}
+act 2		{"a1":"1","B":"10","b":"a b","cmd":"x","x":"x"}
+act -1	role:1	{"a1":"10"}
+case 198
+pin b:*
+pin k_2:a b,cmd:u:v
+pin k_2:*
+pin x:*,B:1
+pin a:1
+act -1		{"a":"u:v"}
+actE 1	k_2:a b,cmd:u:v
+actE 4	b:true,a:1
+act 4	a:1,b:1.5,B:ping	{"a":"1","b":"1.5","B":"ping"}
+act 2	k_2:u:v,cmd:u:v	
+act 4	a:1	
+act -1	x:true	{"x":"true","B":"ping","a":"u:v","cmd":"1.5"}
+actE 2	k_2:ping
+case 199
+pin k_2:*
+pin cmd:2
+pin B:u:v,cmd:1
+pin a1:true,x:ping,b:true
+act 0		{"k_2":"1","a-b":"u:v"}
+act -1		{"cmd":"true"}
+actE 1	cmd:2,a-b:1,B:true
+act 0		{"k_2":"-1","B":"1.5","a1":"u:v"}
+act 1	cmd:2,k_2:ping	
+act 0		{"k_2":"1"}
+act 1	cmd:2	
+act -1	a:true,role:2	{"x":"10"}
+case 200
+pin a-b:*
+pin role:u:v,a1:u:v,a:10
+pin a-b:*,x:x
+pin a-b:a b,B:*
+pin role:*,B:*
+act 0	a-b:1.5,b:1	
+act 4	B:ping,role:2,a-b:-1	{"a-b":{"a":1}}
+act 0	a-b:10,x:10,b:a b	
+act 0		{"a-b":"a b","x":"ping"}
+actE 0	a-b:1
+act 0	a-b:x,x:1	
+actE 0	a-b:2,B:ping
+act 0	a-b:true	
+case 201
+pin b:ping
+actE -1	role:x,cmd:x
+act -1	k_2:x,a:-1	
+act 0	b:ping	
+act 0	b:ping	{"x":1}
+act 0	zz:1	{"b":"ping","a":null}
+act 0	b:ping,cmd:1	
+act -1	zz:1	{"b":"x","k_2":"a b","cmd":"1"}
+act 0		{"b":"ping","a1":"10"}
+case 202
+pin a1:10
+pin x:true,k_2:-1,B:2,cmd:true
+pin x:2,a-b:10,x:2
+pin a-b:10
+act 0	a1:10,B:u:v,b:-1	
+act 2	x:2,a-b:10,B:u:v,cmd:ping	
+act -1	zz:1	{"cmd":"10","a":"true","B":"x"}
+act 2	x:2,a-b:10	
+act -1		{"k_2":"u:v","cmd":"true","B":"1"}
+act 2	x:2,a-b:10	
+actE 2	x:2,a-b:10
+act 3	a-b:10	
+case 203
+pin b:true,a1:*,role:a b
+pin role:1,b:*
+pin a:*,k_2:10,role:x
+act -1	b:a b,a1:x,role:1.5	
+actE 2	a:-1,k_2:10,role:x
+act 2		{"a":"u:v","k_2":"10","role":"x"}
+actE 0	b:true,a1:ping,role:a b
+act 0	b:true,a1:1,role:a b	{}
+act -1		{"role":"x","a":"-1"}
+actE 2	a:-1,k_2:10,role:x,b:1.5
+actE -1	b:1,a1:a b,role:a b
+case 204
+pin a:*
+pin cmd:*,a:*
+pin role:1,a-b:u:v
+pin a1:1,B:*
+pin role:*
+act 0		{"a":"-1","a1":"ping"}
+act 1	cmd:10,a:1,b:10	
+actE 3	a1:1,B:1
+act 2	role:1,a-b:u:v,a1:1.5,k_2:1	
+act 1	cmd:1,a:1,role:1.5	
+act 0	a:ping	{"a":"ping"}
+act -1	zz:1	{"B":"ping"}
+act 4		{"x":"2","k_2":"10","b":"1.5","B":"-1","role":"1","a1":"x"}
+case 205
+pin a-b:2
+act -1	zz:1	{"a-b":"x"}
+act 0		{"a-b":"2","k_2":"-1","B":"a b"}
+act -1		{"a-b":"a b","role":"1"}
+act 0	a-b:2,x:1	
+act -1	a-b:x,x:2	
+act 0	a-b:2,x:-1	
+act -1	a-b:ping,b:2,a1:u:v,k_2:1,cmd:10,a:1.5	
+act -1		{"a-b":"x","a":"1.5"}
+case 206
+pin a1:x,cmd:x,B:a b
+pin k_2:*,B:a b,b:*
+pin a:*,B:u:v,a1:*,role:*
+pin B:*
+pin role:*
+pin role:*,cmd:true,a-b:a b
+actE 4	a:-1,a1:1.5,role:1
+act 3	B:1.5	{"role":"true","a1":"-1","a-b":"x","k_2":10}
+act 1	k_2:x,B:a b,b:a b,a:u:v,role:2	
+act 1	zz:1	{"k_2":-1,"B":"a b","b":"1.5","a":"2","a1":[1,2]}
+act 3	a1:2,cmd:x,B:a b,a-b:10	
+actE 2	a:1.5,B:u:v,a1:u:v,role:2
+act -1		{}
+act 4	role:a b	
+case 207
+pin k_2:*
+act 0	k_2:10,b:10	
+act -1	x:2,cmd:1.5	
+act 0		{"k_2":"2","cmd":"u:v"}
+act 0	k_2:2,B:x,a-b:u:v	{"role":{"a":1}}
+actE 0	k_2:true,cmd:u:v
+act 0	k_2:ping,b:1	
+act 0	k_2:-1	
+act 0	k_2:true,x:1	
+case 208
+pin cmd:*
+pin a-b:*,b :*,x:*
+pin b:-1,a-b:-1,role:2,cmd:*
+pin x:*
+pin cmd:u:v
+pin x:*
+pin a-b:a b
+actE 1	a-b:1,b:1,x:-1
+act 0		{"cmd":"1","B":"true"}
+actE 4	cmd:u:v,B:u:v
+act 1	a-b:1,b:10,x:1.5	
+act 0	cmd:ping,b:x,a1:-1,B:x	
+act -1		{"a-b":"1","b":"1","role":"2","a":"x"}
+act 1		{"a-b":"u:v","b":"2","x":"true","k_2":"u:v"}
+actE -1	a-b:ping,k_2:a b
+case 209
+pin a:1,a1:1
+pin k_2:*,a:x
+pin x:*,k_2:*
+pin a1:u:v,role:*
+pin a1:-1,cmd:a b,k_2:*
+pin b:1
+pin cmd:ping
+act -1	a-b:a b,role:ping,b:1.5,cmd:-1	
+actE -1	a-b:a b,a:2,x:1.5
+act -1		{"cmd":"a b","a":2,"a-b":"x"}
+act 5	b:1	
+act 5	b:1	
+actE -1	cmd:-1,a1:1.5
+act -1		{"a1":"ping","b":"1.5"}
+act -1	k_2:true,a:1.5,b:a b	
+case 210
+pin b:*,a-b:*,cmd:1.5,a:a b
+pin cmd:*
+pin x:ping,a:*,a1:*
+pin a1:2,a-b:*
+pin a1:*,a-b:*,a:*,x:*
+act 0	b:1,a-b:-1	{"cmd":"1.5","a":"a b"}
+act 1	cmd:a b,B:a b	{}
+actE 2	x:ping,a:10,a1:u:v
+act 3	a1:2,a-b:a b,cmd:true	
+actE 1	cmd:ping,a1:x
+act -1		{"role":"1.5","a1":{"a":1}}
+actE -1	a:a b,a-b:a b,k_2:10,x:true
+act -1	k_2:ping,a:1	
+case 211
+pin a1:ping
+pin role:2,b:*
+pin a-b:*
+pin role:10
+act 2	a-b:true	
+act 3	cmd:x,role:10	{"B":"1","x":"a b"}
+actE 2	a-b:x
+actE 0	a1:ping,cmd:2,role:1
+act -1	x:1.5	
+actE 3	role:10,b:2
+actE 3	role:10,a-b:1,B:10
+actE 2	a-b:1.5,x:1.5
+case 212
+pin a-b:*,B:*
+pin a1:ping
+pin a:10
+pin k_2:*,role:2,a:true
+pin role:ping
+pin a1:-1
+pin cmd:*
+act 6	zz:1	{"a1":"x","cmd":"1"}
+act -1	a:-1	
+act 2	k_2:1,a:10,a-b:-1	
+act 0	zz:1	{"a-b":"2","B":"2"}
+act 6		{"cmd":"-1","k_2":"10"}
+act 4	role:ping	{}
+act 5	a1:-1,b:a b	
+act 1	a1:ping,a:a b,cmd:1.5	
+case 213
+pin k_2:-1,x:*,cmd:1
+pin x:true,cmd:*,a-b:ping
+pin k_2:*,cmd:*,a1:2,x:1
+act -1	k_2:x,B:1	
+actE -1	x:1.5,cmd:10,a-b:ping
+act 2	k_2:true,cmd:1,a1:2,x:1	
+act -1		{"k_2":"-1","x":"1.5","a":"a b","B":"1.5"}
+act -1	k_2:-1,cmd:1,b:true,a-b:10	
+act -1	k_2:2,cmd:a b,x:1,B:a b	
+act -1	a:u:v,x:1.5,b:1,role:true,cmd:x	{}
+act -1	k_2:a b,a1:2	
+case 214
+pin a:x
+pin a:-1,a-b:10
+pin b:1.5
+act 2		{"b":"1.5"}
+act 0	a:x	
+act 2	b:1.5,x:u:v,a:a b	
+act -1		{"a":"-1","a-b":"true","b":"-1"}
+act 1	a:-1,a-b:10,B:-1	
+actE 1	a:-1,a-b:10,b:1.5
+act 1		{"a":"-1","a-b":"10"}
+actE -1	b:2,k_2:10,a1:-1
+case 215
+pin k_2:*,a-b:*
+pin k_2:*
+pin b:2,a1:-1,role:2,B:10
+pin a-b:*
+act 3	a-b:1.5	
+act 3		{"a-b":"2","b":"a b","role":"a b"}
+actE 2	b:2,a1:-1,role:2,B:10,k_2:true,a-b:true
+act 0	k_2:true,a-b:-1	
+act -1		{}
+act 3		{"a-b":"2","role":"x","a":2}
+act 1	k_2:10,role:a b	{}
+act -1	zz:1	{"a1":"-1","role":"2","B":"10","b":"-1"}
+case 216
+pin B:ping,a-b:*
+pin B:1,role:1,b:true
+pin a1:true
+act -1	a1:2	{"a1":"2","a-b":"ping"}
+act 2	a1:true,b:1.5	
+act 0	B:ping,a-b:a b,a1:1.5,x:10	
+act -1		{"b":"10"}
+act -1	B:a b,role:ping	
+act 2	a1:true	
+act 2	a1:true,role:x,cmd:-1	
+act -1		{"a1":"x","B":"a b"}
+case 217
+pin b:*
+pin a1:*
+pin k_2:*
+pin a:2,k_2:*
+pin B:*,role:1.5,cmd:ping
+pin role:*,k_2:a b
+pin a1:*
+act 0		{"b":"x","k_2":"u:v","a":"u:v"}
+act -1	zz:1	{"a":"x","a-b":"1.5"}
+act 6	a1:2	{"a":"-1"}
+actE 6	k_2:u:v,a1:10,B:10,a:1.5,x:true,cmd:a b
+act 0	B:ping,role:1,cmd:ping,b:-1	
+act 2		{"role":"-1","k_2":"ping"}
+act 6	a1:1,a-b:ping	
+act -1	zz:1	{}
+case 218
+pin k_2:2,role:1,a1:a b
+pin cmd:1,x:*
+pin x:*,role:10
+pin role:*
+act 3		{"role":"10","cmd":1,"a":"true"}
+act 3	role:10,a:ping	{}
+act 1		{"cmd":"1","x":"true"}
+act 3	role:ping,b:a b	
+act 3		{"k_2":"2","role":"1","a1":"ping","x":"a b"}
+actE 0	k_2:2,role:1,a1:a b
+act 2		{"x":"true","role":"10"}
+act 3	role:-1	
+case 219
+pin k_2:10,a:x
+pin a-b :true,a1:*,b:a b
+pin cmd:*,B:*,a-b:-1,x:*
+act -1	cmd:1,a-b:-1,x:a b	{}
+act -1	x:u:v,cmd:10	{}
+act -1	k_2:10	{"a":"1"}
+act -1	cmd:1	
+actE -1	a-b:-1,x:ping,a:u:v
+act -1		{"B":true,"a":"1.5","k_2":"ping","a1":{"a":1}}
+act 2	cmd:10,B:true,a-b:-1,x:-1	
+act -1	a-b:true,a1:1,b:a b	
+case 220
+pin role:*,cmd :a b,a-b:10
+pin x:a b,a1:a b,a-b:1,a :10
+pin b:1.5,a1:*,x:*
+pin a:u:v,x:1,a1:x
+pin B:2
+act -1		{"a1":"a b","a":"10"}
+act -1	x:a b,a1:a b,a-b:true	{"a":"10"}
+actE 4	B:2
+act -1	a:u:v,x:1,a1:1.5,B:true	
+act -1	cmd:1	
+act 2		{"b":"1.5","a1":"u:v","x":"x"}
+act -1	a:x,x:u:v,a1:x,b:a b	{}
+act -1	a1:a b	{"B":"u:v","a":"2","a-b":"-1"}
+case 221
+pin b:1,B:1.5,role:*,a-b:*
+pin a1:true
+pin role:10
+pin b:1.5,cmd:*,x:*,a-b:*
+pin cmd:10,role:ping,k_2:ping
+act 4	zz:1	{"cmd":"10","role":"ping","k_2":"ping"}
+actE 0	b:1,B:1.5,role:true,a-b:x
+act 1		{"a1":"true"}
+act -1		{"role":"a b","a1":"2","k_2":"x"}
+actE 0	b:1,B:1.5,role:ping,a-b:a b,a:2
+act 4	cmd:10,role:ping	{"k_2":"ping","a-b":"1.5"}
+act 3		{"b":"1.5","cmd":1,"x":"x","a-b":"u:v"}
+actE -1	b:true,B:1.5,role:ping
+case 222
+pin x:a b,a:*,b:x
+pin a:x,a-b:*
+pin x:2
+pin b:x,a-b:ping
+act 2	x:2	
+act 2	x:2,b:ping	{}
+actE -1	x:a b,a:1,b:ping,cmd:true
+act -1	a:10,x:a b,B:1	{"cmd":"-1"}
+actE 2	x:2,a1:10,B:a b
+actE -1	x:a b,a:1,k_2:x
+actE 3	b:x,a-b:ping,cmd:2
+actE 1	a:x,a-b:x
+case 223
+pin cmd:*,x:*,a1:*,B:*
+pin cmd:*,B:*
+pin a:2,x:*,a1:10
+pin a:ping,b:x,x:-1,role:-1
+pin a:ping,b:*
+act -1	a-b:-1	
+act 1	cmd:10,B:a b,x:10,b:true	
+actE 4	a:ping,b:2
+act 1	cmd:1,B:true	{}
+act 0	cmd:-1,x:x,a1:x,B:2	{}
+act -1	zz:1	{"b":"x","x":"ping","role":"-1"}
+act -1	zz:1	{"a":"1","x":"x","a1":"10"}
+act -1	k_2:2	{"k_2":"2","a1":"10","role":"x"}
+case 224
+pin x:*,role:*,b:*,k_2:*
+pin x:*,cmd:u:v,a:*,b:*
+pin k_2:-1,x :1,a:10
+pin a :a b
+pin B:*
+pin k_2:x,x:*
+pin a1:1,B:*,x:1.5,b:*
+act -1		{"a":"a b","role":-1}
+act -1	k_2:-1,x:1,a:10	{"cmd":"2"}
+act -1	cmd:1.5,a:x,b:2	
+act 6	a1:1,B:10,x:1.5,b:2	
+act -1	x:1	{"x":"1","a":"10","b":[1,2]}
+act 4	a1:-1,B:true	
+actE 6	a1:1,x:1.5,b:x,B:-1
+act 6	a1:1,B:10,x:1.5,b:u:v	{"a1":"1","B":"10","x":"1.5","b":"u:v"}
+case 225
+pin k_2:1.5,a1:*,b:true
+act 0		{"k_2":"1.5","a1":"true","b":"true"}
+actE -1	k_2:1.5,a1:true,b:-1
+act -1	k_2:1.5,a1:a b,b:a b	{"role":"true"}
+actE -1	k_2:1.5,a1:x,b:2
+act 0	k_2:1.5,a1:2,b:true,cmd:10	
+act -1	k_2:x,a1:1.5,b:a b	
+actE -1	k_2:ping,a1:a b,b:true
+actE -1	k_2:1.5,a1:true,b:1
+case 226
+pin cmd:-1,x:ping
+pin cmd:u:v,role:10
+pin a:*,B:1.5,a1:*,a-b:a b
+act 1	cmd:u:v	{"role":"10"}
+act -1		{"cmd":"-1","x":"10","b":"-1"}
+act 2		{"a":"true","B":"1.5","a1":-1,"a-b":"a b"}
+actE 0	cmd:-1,x:ping,role:true
+act 1	cmd:u:v,role:10	
+act -1	x:ping,k_2:10	
+act -1		{"a":"10","B":"1.5","a1":"1.5","a-b":"-1"}
+act -1		{"cmd":"u:v"}
+case 227
+pin role:2,x:*
+pin b:-1
+pin k_2:1,a-b:10,b:*
+pin k_2:2,a-b:10,a1:a b
+pin b:1.5,a:u:v
+actE -1	a-b:10,a1:a b
+act 0	role:2,x:1.5,B:1.5	
+act -1		{"k_2":"2","a-b":"a b","a1":"a b"}
+act 2	k_2:1,a-b:10,b:x	
+act -1	role:10,x:1.5	
+actE 1	b:-1,k_2:1.5,cmd:10
+actE 0	role:2,x:2,a:-1,cmd:u:v
+actE 1	b:-1,a-b:u:v
+case 228
+pin a:*
+pin cmd:*
+pin a-b:*,a1:a b,role:-1,B:u:v
+pin cmd:1.5,b:*,a-b:*
+pin x:*,cmd:1,B:*,b :true
+pin a:-1,a-b:2,x:2
+act 0	cmd:1,B:1.5,b:true,a:u:v,x:x	
+act 1		{"x":"10","cmd":"1","B":10,"b":"true","a1":"2"}
+act 5		{"a":"-1","a-b":"2","x":"2","k_2":"1.5"}
+actE 0	a:true
+actE 0	role:1,a-b:u:v,a:a b,B:true
+act 2	a-b:10,a1:a b,role:-1,B:u:v,cmd:1	
+act -1	b:ping,a-b:x	
+actE 1	x:u:v,cmd:a b,B:-1,b:true,role:true
+case 229
+pin cmd:*,a1:10,k_2:*,b:-1
+pin role:2,a:*
+pin a1:1.5,k_2:2,B:*
+pin B:*,x:ping,a-b:x
+pin x:*,B:*,a1:-1,x:10
+actE 3	B:u:v,x:ping,a-b:x
+act -1	role:a b,a:1.5,a-b:true,a1:2	
+act 3	zz:1	{"B":"u:v","x":"ping","a-b":"x","a1":"u:v"}
+act 4		{"x":"10","B":"x","a1":"-1","k_2":"1.5"}
+act -1		{"a":"u:v","b":"u:v","a-b":"-1"}
+actE -1	k_2:10,B:true,role:10
+actE 2	a1:1.5,k_2:2,B:1
+act -1		{"a-b":"2"}
+case 230
+pin b:*
+pin B:1,a:true
+pin b:*
+pin b:*
+pin a1:*,B:*,cmd:true
+act -1	role:u:v,a1:ping	{}
+act 3		{"b":"true"}
+act 3	b:a b,k_2:u:v	{"a":"1.5"}
+act 3	b:10	
+act 4		{"a1":"x","B":"10","cmd":"true"}
+act 3	b:1	
+act 3	b:1	
+act 3		{"b":"true","x":"true","k_2":"10"}
+case 231
+pin a-b:*,a1:1,b:1.5
+pin a:*,a-b:-1
+pin a1:*,a-b:u:v
+pin a:10,B:*
+pin k_2:1,B:1
+pin b:true,x:*,a1:1.5,k_2:*
+act 3		{"a":"10","B":-1,"cmd":"true"}
+actE -1	a:true,a-b:10,cmd:2
+act -1		{"a-b":"2","a1":"1","b":"true"}
+act -1		{"a1":"10","a-b":"a b","B":"true"}
+act -1		{"x":"-1","a1":"1.5","k_2":"1"}
+actE -1	k_2:true
+act 5		{"b":"true","x":"true","a1":"1.5","k_2":"-1"}
+act -1		{"b":"true","x":"u:v","k_2":"1.5"}
+case 232
+pin B:1
+pin a:*,b:*,cmd:*
+pin role:2
+pin role:u:v,b:*,a-b:2
+pin role:x,B:*
+act 1	a:10,b:x,cmd:1.5	
+actE 0	B:1
+act -1	a:1.5,b:2	
+actE 4	role:x,B:true
+act -1		{"role":"1","x":"ping"}
+act -1	role:u:v,b:2,a-b:10,x:1	
+act -1	role:u:v,b:u:v,a-b:10,cmd:ping	
+act 1		{"a":"10","b":"10","cmd":"u:v","B":"a b"}
+case 233
+pin a:*,role:u:v
+pin B:*
+pin B:a b
+pin cmd:-1
+pin x:ping
+act -1		{"a1":"x","x":"1","cmd":2}
+act 1	a-b:1,B:2	
+actE 3	cmd:-1,a:2,B:ping
+act 1	B:x,role:2	{"a-b":"ping"}
+act -1	x:a b	{}
+act -1	x:10	
+act 4	x:ping	
+actE 4	x:ping,cmd:2
+case 234
+pin b:*,a-b:*
+pin a1:ping,B:a b
+pin role:1.5,b:true,cmd:1.5
+pin a1:u:v
+pin cmd:-1,x:x,k_2:*,a:u:v
+pin a-b:ping,b:*
+pin a:1.5,a1:1.5,role:*
+actE -1	cmd:-1,x:true,k_2:2,a:u:v,role:-1
+act 6	a:1.5,a1:1.5,role:10	
+act -1	a1:1.5,a:1.5,k_2:ping	
+act -1		{"a1":"1.5","x":"1"}
+act -1	cmd:true,x:-1,b:u:v,role:u:v	
+act -1		{"role":"1.5","b":"true","cmd":"a b","a1":"-1"}
+act -1	a1:ping,B:1.5,a-b:-1	
+act 6	a:1.5,a1:1.5,role:ping,B:a b,b:ping	
+case 235
+pin B:1.5,a-b:*,b:10
+pin a-b:*
+pin a-b:10,B:1
+pin b:x,cmd:1,B:*
+pin k_2:ping,a1 :*
+act 0		{"B":"1.5","a-b":"x","b":"10","a":"10","cmd":"true"}
+act 1	a-b:a b	
+act -1		{"cmd":"1","B":"10"}
+act -1	B:1.5,b:1	{"B":"1.5","b":"1","x":null}
+act 1		{"a-b":"1"}
+act 2		{"a-b":"10","B":"1"}
+act 0		{"B":"1.5","a-b":"x","b":"10","a":"1","a1":null}
+act 0	B:1.5,a-b:u:v,b:10	
+case 236
+pin a:*,x:x,a-b:a b
+pin role:ping,a1:*
+pin cmd:*,x:1.5
+pin role:*,a-b:u:v,B:x
+pin a:*
+pin B:*
+pin a:1,x:x,a-b:ping
+act 5	B:2,a:2,a1:1.5	
+actE 2	cmd:a b,x:1.5
+act 4	a:1.5,cmd:10,b:ping	
+act -1	cmd:-1,b:x	{}
+act 5		{"role":"u:v","a-b":"a b","B":"x"}
+act -1	cmd:a b	
+act 5	a1:10,B:10,k_2:2,role:10,a:1.5	
+act 5	a:1	{"B":"1"}
+case 237
+pin B:*
+pin b:10
+pin a1:*,a-b:a b,role:a b
+act 0	B:1.5,k_2:2	
+act 1	b:10,B:2	
+act 1		{"b":"10"}
+act 0	zz:1	{"B":"a b"}
+act 2	a1:x,a-b:a b,role:a b,a:true	
+act 2	a1:u:v,a-b:a b,role:a b,b:x	
+act 0		{"B":"10"}
+act 0	B:true,x:u:v	
+case 238
+pin a:*,a1:2,role :*,x:*
+pin k_2:10,B:x
+pin a:*,role:a b
+pin a1:*
+pin k_2:1,B:2,cmd :-1,a-b:*
+pin B:*,a:u:v
+pin x:ping,role:*,cmd:ping
+act -1	role:true,cmd:true,B:x	
+actE 5	B:x,a:u:v
+act -1	a:u:v	
+act 3	a1:u:v	
+act -1	k_2:x,B:2	
+act -1		{"k_2":"ping","B":"2","cmd":"-1","a-b":"2"}
+act -1	k_2:1	{"B":"2","cmd":"-1","a-b":"2"}
+act 3	a1:u:v,a-b:ping	
+case 239
+pin B:*,a:-1
+pin B:1,role:a b,b:*
+pin a-b :*,a1:*
+pin b:*,k_2:1.5
+pin cmd:10,k_2:*
+pin x:*,a-b:ping
+act -1	cmd:true	{"k_2":"1"}
+act -1	k_2:x	{"a":{"a":1}}
+act -1		{"b":"1","a1":"ping","a":"u:v"}
+act -1		{"b":"-1","k_2":"2","a":"-1"}
+act -1	B:10,role:a b,b:u:v	
+act 4		{"cmd":"10","k_2":"u:v","b":"u:v"}
+act 0	B:2	{"a":"-1","a1":"10"}
+actE -1	role:1,cmd:1,a1:2,k_2:10
+case 240
+pin a:1.5
+pin b:u:v,a:*,x:10,cmd:2
+pin B:*,b:a b
+act 2	B:1,b:a b,x:x	
+actE -1	B:u:v,b:ping
+act 0	a:1.5,a-b:10,B:1	{"a":"1.5","a-b":"10","B":"1"}
+act 2		{"B":"-1","b":"a b"}
+act -1	b:2,a:true,x:-1,cmd:2	
+act -1	b:x,a:x,x:a b	{"cmd":"1"}
+act -1	a:true,a-b:x	{"b":"ping"}
+act -1	b:2,x:-1	
+case 241
+pin k_2:true,b:a b
+pin cmd:u:v
+act 1		{"cmd":"u:v"}
+act -1	k_2:a b,b:a b	
+act 0		{"k_2":"true","b":"a b"}
+act 1		{"cmd":"u:v"}
+act -1	b:-1,x:-1	
+act -1		{"k_2":"ping","b":"a b","a":"ping","role":"a b"}
+act 1	cmd:u:v,k_2:u:v	
+act -1	b:true	{}
+case 242
+pin k_2:*
+pin b:1.5,cmd:x
+pin b:ping
+pin x:*,b:*
+pin cmd:2,role:1.5
+pin x:2,B:*,k_2:*
+act 2	b:ping,a:-1	{}
+act 5		{"x":"2","B":"1","k_2":"10","role":"a b"}
+act -1		{}
+act -1	B:-1	
+act 5	x:2,B:u:v,k_2:u:v	
+actE -1	a-b:1
+act 0	k_2:ping,a1:1.5	
+act 4	cmd:2,role:1.5,B:u:v	
+case 243
+pin a1:*,cmd:u:v,a-b:*
+pin cmd:ping,a:*,x:1.5
+pin x:*
+pin b:u:v,B:2,cmd:2
+pin cmd:*,role:u:v,a-b:*
+pin x:*,a-b :10,a:a b
+pin b:1.5,a1:-1,role:*
+act 4	cmd:1,role:u:v,a-b:u:v	{}
+act 0		{"a1":"true","cmd":"u:v","a-b":"1","x":"x"}
+act 2	x:x,B:10	
+act 0	zz:1	{"a1":"10","cmd":"u:v","a-b":"1.5","role":2}
+act 2	b:true,x:a b	
+act -1		{"a-b":"2"}
+act -1		{"a1":"x","a-b":"2"}
+act 2	x:-1	{"k_2":"x","a-b":"ping"}
+case 244
+pin x:*,k_2:2,B:1
+pin a:*,role:2
+pin a:*,cmd:10
+pin a-b:2
+pin a:1
+pin role:a b,a-b:ping
+pin role:true,B:10
+act 0	x:-1,k_2:2,B:1	{}
+actE -1	role:a b
+act -1	x:u:v,k_2:a b,B:1,a:ping	{}
+act 5	role:a b,a-b:ping,a:true	
+actE -1	a-b:10
+act -1		{"role":"1","a-b":"ping"}
+act 1		{"a":"a b","role":"2"}
+act 5	role:a b,a-b:ping,k_2:true,a1:ping	
+case 245
+pin a1:*,k_2:*
+pin role:*,a-b:*
+pin a:*,a1:*,k_2:x
+act 1		{"role":"1.5","a-b":"x","b":"x"}
+act 2	a:x,a1:10,k_2:x	
+act 1	role:1,a-b:1.5	{"role":[1,2]}
+act 1		{"role":"true","a-b":"a b"}
+act 2	a:true,a1:a b,k_2:x,a-b:1.5	
+act 1	a:u:v	{"a-b":"true","role":"1.5"}
+act 2	a:true,a1:x,k_2:x	
+act 2	a:x,a1:-1,k_2:x,B:a b	
+case 246
+pin k_2:a b,a-b:a b
+pin b:*
+pin role:ping
+pin a1:1.5,B:1,a-b:*
+pin k_2:true,a-b:true,x:10
+pin k_2:1.5,role:*,a1:true,cmd:*
+pin a:2,k_2:2,role:ping,b:u:v
+act 1	a-b:10,b:true	{}
+act 0		{"k_2":"a b","a-b":"a b"}
+act -1		{}
+act -1	k_2:true,a-b:true,x:u:v,B:true	
+act 0	k_2:a b,a-b:a b	
+actE 0	k_2:a b,a-b:a b
+act 0	k_2:a b,a-b:a b	
+actE 2	k_2:2,role:ping,b:u:v
+case 247
+pin k_2:1.5
+pin a :x,B:x,x:*
+pin x:*,a-b:1.5,a1:*
+pin b:1,a-b:x,role:a b
+act -1		{"a":"x","B":"x","x":"1"}
+act 0	k_2:1.5,a:x,b:1.5	
+act 3		{"b":"1","a-b":"x","role":"a b","cmd":"2"}
+act -1	a:x,B:x,x:ping	
+act -1		{"a":"x","B":"10","x":10,"role":"1.5"}
+act -1	a:1,B:10,x:1,role:true	
+act -1	a:x,B:x	{"x":-1,"b":"u:v"}
+act -1	x:1,a-b:u:v,a1:x	
+case 248
+pin a:u:v,x:*
+act 0		{"a":"u:v","x":1}
+act -1		{"x":"1","a":"ping","a-b":"1.5"}
+actE 0	a:u:v,x:ping,cmd:2,B:10
+act 0	a:u:v,x:u:v,a-b:a b,b:2	
+act 0	a:u:v,x:u:v,a1:2	
+act -1	zz:1	{"a":"u:v","k_2":"x"}
+actE 0	a:u:v,x:1.5,B:-1
+act -1	a:x,x:a b	
+case 249
+pin a1:u:v,B:-1
+pin k_2:*,cmd:*
+act 0		{"a1":"u:v","B":"-1","b":"true","a-b":"u:v"}
+act 0		{"a1":"u:v","B":"-1","role":1,"x":"u:v"}
+actE 1	k_2:1,cmd:x
+actE 1	k_2:2,cmd:2
+actE -1	a1:u:v,a-b:true
+act -1	cmd:true,B:-1	
+act -1		{"x":"true","B":"1.5"}
+actE -1	b:2,cmd:1
+case 250
+pin k_2:*
+pin a:-1
+pin k_2:*,a1:x
+pin a1:*,cmd:a b,a-b:1,b:*
+act -1	B:ping,a:a b,a-b:10,role:2	
+act 2	k_2:2,a1:x,role:10,b:-1	{}
+act 0	a1:1.5,b:10	{"a1":1.5,"b":"10","k_2":"u:v"}
+act -1		{"a":null,"a1":"a b"}
+act 0	k_2:2	
+act 0	k_2:1.5	{"x":"x","role":"2"}
+act 2		{"k_2":"a b","a1":"x"}
+act 2	B:true,k_2:true,cmd:u:v,a1:x,role:true	
+case 251
+pin a1:1.5,x:10
+pin k_2 :*
+pin role:u:v,a-b:*,k_2:u:v
+pin B:*
+pin x:ping,k_2:1.5
+pin role:*
+pin cmd:*,k_2:*,a-b:10
+actE 0	a1:1.5,x:10
+act -1	a:1	
+act 1	cmd:1,k_2:1.5,a-b:-1	{}
+act 5		{"role":"x","a-b":"2","a":"2","B":null}
+act 1	role:true,k_2:u:v	
+act 3		{"B":1.5}
+act 6	cmd:2,k_2:10,a-b:10	
+act 6	cmd:10,k_2:1.5,a-b:10	
+case 252
+pin a:ping,k_2:ping,a-b:x,x:*
+pin k_2:1.5
+pin a-b:1,k_2:*,cmd:1.5
+pin cmd:1,role:-1,B:-1,k_2:*
+pin role:*,a:1
+act 4	role:true,a:1	
+actE 2	a-b:1,k_2:true,cmd:1.5
+actE 1	k_2:1.5
+act -1	b:true,cmd:true,x:u:v	
+act 2	a-b:1,k_2:ping,cmd:1.5,b:u:v	
+act 1	k_2:1.5,B:a b,b:10	
+act -1	role:x,cmd:2,k_2:1	
+act -1	a:ping,k_2:ping,a-b:2,x:1,role:10	
+case 253
+pin k_2:u:v,role:*,a-b:ping,b:*
+act 0		{"k_2":"u:v","role":"2","a-b":"ping","b":"true","x":"2","B":"2"}
+act -1	a-b:ping,b:2,role:x	
+act -1	k_2:ping,role:ping,a-b:10,b:u:v	
+actE -1	k_2:u:v,role:2,a-b:ping
+actE 0	k_2:u:v,role:2,a-b:ping,b:2,cmd:2
+act 0	k_2:u:v,role:true,a-b:ping,b:1	
+act -1	k_2:u:v,role:true,a-b:1,b:-1	
+act 0	k_2:u:v,role:-1,a-b:ping	{"b":"1"}
+case 254
+pin k_2:*
+pin role:u:v,a:x
+pin x:*,a-b:ping,k_2:1
+pin role:1.5
+pin k_2:2,x:1
+pin a:a b
+act 0	k_2:2	
+act 3		{"role":"1.5"}
+act -1	b:ping	
+act -1	role:1,a:x	{}
+act 1	role:u:v,a:x	{}
+actE 2	x:ping,a-b:ping,k_2:1
+act 3		{"role":"1.5","a1":"x"}
+actE 5	a:a b,k_2:2,x:2
+case 255
+pin B:*,a:u:v
+pin cmd:1.5,x:1.5,B:x
+act 0		{"B":"ping","a":"u:v","role":"-1"}
+act -1	B:true,a1:-1,k_2:u:v	
+actE 0	B:-1,a:u:v
+act 0	B:true,a:u:v,k_2:2	
+act -1	cmd:1.5,B:x,k_2:true	
+act 1	cmd:1.5,x:1.5,B:x	{}
+act -1	zz:1	{"x":"1.5","B":"x"}
+act -1	x:1.5,B:x,cmd:10	
+case 256
+pin a:1.5,B:2,cmd:true,role:-1
+pin cmd:*,role:1
+pin a:x
+pin cmd:2
+pin a1:*
+pin a-b:*,B:10,b:-1
+act 0	a:1.5,B:2,cmd:true,role:-1	
+act 3	cmd:2,role:true	
+act -1	zz:1	{"a-b":"ping","B":"a b","b":"-1","k_2":"1.5"}
+act -1	zz:1	{"cmd":1,"role":"u:v","a":"1.5","x":"-1"}
+actE -1	role:2
+act -1	k_2:1.5,x:true,a:u:v	{"B":"-1"}
+act -1	B:ping,role:10,x:ping,a-b:1	
+act 3		{"a1":"1","cmd":2,"B":"10","a":null}
+case 257
+pin cmd:*,a1:*,a-b:true
+act 0		{"cmd":"a b","a1":"a b","a-b":"true"}
+act 0	cmd:ping,a1:1,a-b:true,k_2:true	{}
+actE -1	cmd:10,a1:u:v
+actE 0	cmd:1.5,a1:1.5,a-b:true,x:-1
+act 0	cmd:-1,a1:-1,a-b:true,k_2:true	
+act 0	cmd:1,a1:-1	{"cmd":"1","a1":"-1","a-b":"true","a":"x"}
+act 0	zz:1	{"cmd":"true","a1":"10","a-b":"true"}
+act -1	zz:1	{"a":"1","x":"1.5"}
+case 258
+pin x:u:v,b:*
+act -1		{"x":"true","b":"2"}
+act 0	x:u:v	{"b":"true"}
+act -1		{"x":"a b","b":"-1","a":"ping"}
+act 0	x:u:v,b:2	
+act 0		{"x":"u:v","b":"10","B":"true","a":[1,2]}
+act -1	x:a b,a1:10,k_2:-1	
+act 0	x:u:v,b:ping	
+actE -1	x:10,k_2:1,B:ping
+case 259
+pin x:*
+pin k_2:*,a1:*,a:-1
+act -1	zz:1	{"a1":"ping","a":"true"}
+act 0	b:1.5,a:x,a1:u:v,x:true	
+actE 0	x:2
+act -1		{"k_2":"ping","a":-1,"a1":null}
+act 0	zz:1	{"x":"a b"}
+actE 0	x:a b
+actE 0	x:x,a:true
+actE 0	x:true,a1:-1,a:x
+case 260
+pin k_2:*,x:2,a:2,b:*
+pin b:*,B:*,cmd:10,a1:*
+actE -1	b:u:v,cmd:10,a1:1
+act -1	a1:1	{"a1":"1","B":"1","a":"1"}
+act -1	b:u:v,B:x,a1:-1	
+act -1	B:true,a-b:1.5	
+act 1	b:x,B:x,cmd:10,a1:u:v,k_2:10	
+act 0	zz:1	{"k_2":"2","x":"2","a":"2","b":"-1","a1":1}
+act 0		{"k_2":"ping","x":"2","a":"2","b":"true","a-b":"-1"}
+actE 1	b:2,B:u:v,cmd:10,a1:1.5
+case 261
+pin x:*,cmd:*,a-b:*,k_2:2
+pin b:a b
+pin a-b:a b,role:x,k_2:1.5
+pin a-b:1.5,role:true,k_2:a b
+act -1	a-b:a b,role:ping,k_2:1.5,B:1,a1:1	
+actE -1	k_2:2,role:10,cmd:1,a-b:u:v,a1:x
+act 1	b:a b	
+act 0	x:-1,cmd:10,a-b:true,k_2:2	
+actE 1	b:a b
+act 1	b:a b	
+act -1	a-b:a b,k_2:1.5	
+act -1		{"a-b":"10","role":"x","b":"10"}
+case 262
+pin B:-1
+pin a1:10,B:*,cmd:*
+pin cmd:*,B:x,a1:-1,a-b:*
+pin a1:*,a:-1,x:ping,k_2:*
+pin x:u:v,a1 :u:v
+pin a1:10,b:*,B:x,a-b:10
+pin b:*,a1:*
+actE 1	a1:10,B:a b,cmd:true,a-b:u:v
+act 0		{"B":"-1"}
+act 2	cmd:true,B:x,a1:-1,a-b:10,x:10	
+actE 0	cmd:10,B:-1,a1:-1,a-b:10
+act 6		{"a1":"1","b":"u:v","B":"ping","a-b":"2"}
+actE -1	k_2:x
+act -1		{"a":"x","a-b":"2","a1":"u:v","k_2":"x"}
+act 6	a1:10,b:1,a-b:10	
+case 263
+pin a-b:*,a:*,cmd:*
+pin k_2:x,cmd:ping,a:x
+pin role:1
+act -1	role:-1,a:ping	
+act 1		{"k_2":"x","cmd":"ping","a":"x","B":"-1","x":"ping"}
+act 2	zz:1	{"role":"1"}
+act -1	a1:true	
+act -1		{"b":"1.5","a-b":"u:v","k_2":"u:v"}
+act 2		{"role":"1","a1":"1.5"}
+act 0	a-b:true,a:10,cmd:1,k_2:a b	
+act 0	a-b:1,a:a b,cmd:1.5,B:1.5	
+case 264
+pin cmd:u:v,x:*
+pin k_2:1,role:-1
+pin a-b:-1,k_2:a b,role:a b
+pin B:1.5,role:-1
+actE 3	B:1.5,role:-1
+act -1	k_2:1	{"role":"true","a1":"10"}
+act -1		{"cmd":-1,"x":true,"role":10}
+act -1	a:1,b:ping,a1:-1,a-b:-1	
+act 0		{"cmd":"u:v","x":"x","B":{"a":1}}
+act -1	role:ping,x:a b,B:u:v	{}
+actE -1	a-b:-1,k_2:a b,x:2
+act -1	a-b:1,k_2:a b,role:a b,x:x	
+case 265
+pin x:2,a-b:*
+act -1	x:ping,a-b:-1,k_2:1.5	{"x":"ping","a-b":-1,"k_2":"1.5"}
+act 0	zz:1	{"x":2,"a-b":"1","cmd":"10"}
+act 0		{"x":"2","a-b":"x","role":"10","cmd":"-1","a1":[1,2]}
+act 0		{"x":"2","a-b":"1","b":"1"}
+act -1	x:-1,B:1.5,b:1	
+act 0	x:2,a-b:x,a1:x	
+actE 0	x:2,a-b:a b,B:10
+act 0	x:2,a-b:x,b:2	
+case 266
+pin a-b:*
+pin b:true,k_2:a b,a-b:2
+pin cmd:u:v
+act -1	cmd:1.5,a:1.5	
+act 2	cmd:u:v	
+act 0		{"b":"a b","k_2":"a b","a-b":"2","x":"true","B":null}
+actE 0	a-b:-1,role:a b
+actE 0	a-b:ping
+act 0	a-b:u:v	{"a-b":"u:v","B":"true","k_2":"1.5"}
+actE 0	a-b:x,a1:ping
+act 0	a-b:1.5,role:x,B:10	
+case 267
+pin b:ping,a-b:*
+pin B:*
+pin role:x,x:1.5,a:*,b:10
+pin a1:-1
+pin a1:ping
+act 1	B:2	
+act -1	x:ping	
+actE -1	b:x,a-b:1,a:ping
+act 0	b:ping,a-b:2,x:-1,a:true	
+act 4	a1:ping,x:10	
+act -1	role:x,a:2,b:10,x:true	
+actE 0	b:ping,a-b:u:v
+act -1	a1:true,k_2:10,a-b:10	
+case 268
+pin cmd:*,a1:x
+pin a:x,cmd:u:v
+pin b:*,a-b:1
+pin x:u:v,a1:*,cmd:*
+pin a-b:10
+pin a-b:ping,a:a b
+pin B:ping,a-b:true,k_2:*
+act -1	a-b:ping,b:1	
+act 4		{"a-b":"10","a":"u:v"}
+act 5	a-b:ping	{"a":"a b"}
+act 3		{"x":"u:v","a1":-1,"cmd":"1","a":"u:v"}
+actE -1	x:ping,a1:a b,b:-1,B:1.5
+act -1	zz:1	
+actE 3	x:u:v,a1:ping,cmd:ping,b:1,B:-1
+act -1	a:1	
+case 269
+pin x:-1
+pin b:x,a:1,a1:x
+pin a-b:true,k_2:*
+pin a1:*,role:1,x:x
+act -1		{"cmd":"true","k_2":"a b"}
+act -1		{"cmd":"ping","b":"2"}
+act 0	x:-1,b:ping	
+act -1	zz:1	{}
+act 1	b:x,a:1,a1:x	
+act -1	a1:2	{"role":"1","x":"1"}
+act -1	a1:-1,role:1,x:1	
+act -1	a1:2,role:1,x:ping	
+case 270
+pin k_2:10,x:1.5
+pin a1:*,a-b:*,b:1
+pin B:2,a1:a b
+pin a1:*,role:*,a-b:*,a:*
+act -1	role:true,a-b:10,a:2,x:-1	
+actE 0	k_2:10,x:1.5,a-b:x,B:u:v
+act 2	B:2,a1:a b	
+act -1	a1:1.5	{"b":"a b","a":"10"}
+act -1		{"B":"a b","a":"ping","cmd":"true"}
+actE -1	k_2:10,x:true
+act 3	a1:u:v,role:1,a-b:1,a:a b	
+act 1	a1:10,a-b:2,b:1	{}
+case 271
+pin a-b:*,B:x,a1:*,role:*
+act 0		{"a-b":"10","B":"x","a1":"ping","role":"true"}
+act 0		{"a-b":"u:v","B":"x","a1":"1.5","role":"1.5","cmd":"2"}
+actE -1	
+act -1		{"a-b":"1.5","B":"u:v","a1":"-1"}
+act -1	zz:1	{"B":-1,"a1":"1","role":"-1","cmd":"1.5"}
+actE 0	a-b:true,B:x,a1:x,role:a b
+act -1		{"a-b":"a b","B":"1.5","role":"1.5"}
+actE 0	a-b:ping,B:x,a1:1.5,role:1
+case 272
+pin role:*,x:*,k_2:1,a:*
+pin x:*
+pin cmd:10,B:*,k_2:*
+act -1	b:10,a:a b	{"b":"10","a":"a b"}
+act 1	x:u:v	
+act 1	x:1	
+act 1		{"role":"true","x":"1","k_2":"1.5","a":"a b"}
+act 1	x:ping	
+act 2	cmd:10,B:2,k_2:u:v,a-b:u:v,role:-1	
+act 1	x:-1,role:x	
+act 0	role:-1,x:u:v,k_2:1,a:-1	
+case 273
+pin cmd:x,B:1,b:-1
+pin B:1,B:a b,b:*
+pin cmd:*,a-b:a b,a1:u:v,role:*
+pin b:x,a-b:*,cmd:true
+pin b:1.5
+pin role:a b
+pin x :1.5,B:x,a1:*,x:a b
+act -1	B:1,b:ping,k_2:10	{}
+act -1	cmd:10,a1:u:v,role:-1	
+act 4		{"b":"1.5","k_2":"-1"}
+act -1		{"B":"1.5","b":"10"}
+actE 4	b:1.5
+act 0	cmd:x,B:1,b:-1	
+act 5	role:a b	{}
+act -1	x:a b,B:1	
+case 274
+pin cmd:*,role:*,cmd:*
+pin role:*,B:10,k_2:ping,x:*
+pin a1:ping,B:true,role:*,cmd:1.5
+pin a1:u:v,x:*
+actE -1	a1:2,a:1.5,k_2:x,x:x,a-b:ping,cmd:true
+actE 0	cmd:-1,role:u:v,a-b:x
+act 0	cmd:ping,role:u:v,a:true,B:a b	
+act 0	cmd:10	{"cmd":"10","role":"10","a1":"1"}
+act 0	role:10,B:1.5,x:2,cmd:1.5	
+act 0	cmd:ping	{"role":"10","a-b":"u:v","k_2":"10"}
+act -1	x:a b,a-b:true	{"a1":"2"}
+actE -1	a1:ping,B:true,cmd:a b
+case 275
+pin role:*,a-b:1
+pin k_2:u:v,a:*
+pin a:2,k_2:x,x:10
+pin a:1.5,x :x
+pin B:*
+pin role:-1,cmd:*,a1:-1,a:a b
+act 2		{"a":"2","k_2":"x","x":"10","cmd":"1.5"}
+act -1		{"role":-1,"cmd":"1.5","a1":"10","a":"10","k_2":"-1"}
+act -1	zz:1	{"a":"a b","x":"2"}
+act -1		{"a":"2","k_2":"x","x":"1.5","b":"a b"}
+act 4	B:x,role:-1,k_2:u:v	
+act -1		{"a1":"ping","role":"true","cmd":"u:v"}
+act 0	role:-1,a-b:1	{"B":"2","x":1.5}
+act -1		{"a":"10","x":"a b","a-b":2,"a1":"-1","role":1.5}
+case 276
+pin a:10,x:ping,a1:a b,a-b:1.5
+act -1	a:10,x:ping,a1:1.5,a-b:1.5,B:2	
+act -1	a:10,x:1	{"a1":"a b","a-b":"1.5"}
+actE -1	a:x,a1:a b,a-b:1.5
+act -1	x:ping,a-b:1.5,cmd:u:v,k_2:a b	
+act -1		{"a":"10","x":"ping","a1":"true","a-b":"1.5"}
+actE -1	k_2:2,a1:-1
+act -1	role:-1,cmd:ping	
+act -1	a:1.5,x:ping,a1:a b,a-b:1.5,role:1	
+case 277
+pin x:1,cmd:*
+pin k_2:a b
+pin x:1,role:*
+pin a:*,a1:-1
+act 0	x:1,cmd:true	{}
+act 2	zz:1	{"x":"1","role":"x"}
+actE -1	x:1
+act -1		{"x":"1","b":"2"}
+actE -1	a1:1,a-b:u:v,k_2:true
+act 3	a:-1,a1:-1	
+act 0		{"x":"1","cmd":2,"role":"u:v","a1":"a b"}
+act 1	k_2:a b	{}
+case 278
+pin a-b:u:v
+pin role:true,a:*,k_2:true
+pin a:*,x:2,role:*
+pin a-b:10,a:2
+pin a-b:*,B:*,a:ping
+pin a:*,a1:*,cmd:10
+pin role:1.5,a-b:ping,B:x
+act -1	x:2,role:-1,a-b:1.5	
+act -1	a:2,x:1.5,role:-1,a1:true	
+actE 2	a:1.5,x:2,role:true,cmd:true,B:u:v
+act -1	cmd:1,k_2:10,a-b:ping	{}
+actE 1	role:true,a:2,k_2:true
+act -1	role:true,a:10,b:10	
+act -1	role:true,k_2:true	{"B":"-1"}
+act -1	role:10,a:1.5,k_2:true	{"x":"true"}
+case 279
+pin k_2:x,a1:x,a:*,cmd :1.5
+pin B:ping
+pin x:*
+pin b:ping,role:true,a-b:true
+pin role:1.5
+pin role:1.5,a:*
+pin cmd:*,k_2:x
+act -1		{"k_2":"x","a1":"x","a":"1"}
+act 2	x:true,a1:-1	
+act 2	zz:1	{"x":"a b"}
+act 6	k_2:x,a1:x,a:u:v,cmd:1.5,a-b:x	
+act 4	role:1.5,a-b:2	
+act -1	k_2:a b	{"role":"x"}
+actE -1	cmd:ping,k_2:10
+actE -1	b:ping,role:x,a-b:u:v
+case 280
+pin role:ping,a1:1,b:u:v,B:1
+act -1	role:2,a1:1,b:2	{"B":"1"}
+act -1		{"role":"x","a1":"1","b":"u:v","B":"u:v","cmd":"2"}
+act -1	a1:1,b:u:v,B:1	
+act -1		{"role":"ping","B":"1","a":"10","a-b":"true"}
+act -1	zz:1	{"role":"10","a1":"1","B":"1","k_2":"x","b":"true"}
+act -1		{"role":"2","b":"1","B":"true"}
+act -1	role:u:v,a1:u:v	{"b":"u:v","B":"u:v"}
+act -1	role:ping,b:u:v,B:1	{"role":"ping","b":"u:v","B":1}
+case 281
+pin a1 :a b,a:*,B:x
+act -1		{"a":"true","a-b":"a b"}
+act -1		{"a":"a b"}
+actE -1	a1:a b,a:1.5,B:2
+actE -1	a1:a b,a:true,B:x,a-b:a b
+act -1		{"a1":"a b","a":"a b","B":"x","b":"1.5","a-b":"x"}
+act -1	a1:a b,a:1,B:x	{}
+act -1		{"a1":"a b","a":"-1","B":"x","cmd":2,"b":1.5}
+act -1	a1:a b,B:x,cmd:ping	
+case 282
+pin x:*,B:*
+pin role:*,a:-1,b:10
+pin x:x,cmd:a b
+pin k_2:*
+pin B:*,a1:x,b:*
+pin a1:u:v,a-b:*
+pin b:1
+act -1		{"role":"true","a":null,"b":"10","B":"1"}
+act 5	a1:u:v,a-b:ping	
+act 6	role:x,a:-1,b:1	
+actE -1	role:u:v,a:-1,b:u:v,a1:a b
+act 3		{"k_2":"true","B":2}
+actE 5	a1:u:v,a-b:1,x:2,b:u:v
+act 3		{"k_2":"1.5","x":"1"}
+act -1	b:a b,x:1.5	
+case 283
+pin a:-1,b:a b,x:*
+act -1		{"b":"a b","x":"a b"}
+actE 0	a:-1,b:a b,x:10,a-b:10
+act 0	a:-1	{"a":"-1","b":"a b","x":"true","role":"1","cmd":2}
+act 0	a:-1,b:a b,x:1	
+act -1	x:-1,a-b:10,cmd:2	
+act -1		{"k_2":"true","role":"ping","b":"x"}
+actE -1	a:-1,b:ping
+actE 0	a:-1,b:a b,x:true
+case 284
+pin cmd:*
+pin B:true
+pin b:*,B:1
+act 0	cmd:x,role:a b	
+act 2	b:u:v,B:1,a:x	
+act 2		{"b":"ping","B":"1"}
+actE 1	B:true,a-b:true
+actE 0	cmd:x
+act 1	zz:1	{"B":true}
+act 0		{"cmd":"1","x":null}
+act 1	B:true	
+case 285
+pin role:*,x:*
+pin cmd:*,a1:*
+pin x:u:v,cmd:u:v,k_2:*
+pin cmd:-1,a:*,b:*
+act -1	zz:1	{"x":[1,2],"k_2":"2","b":"ping"}
+act 3	cmd:-1	{"cmd":"-1","a":"u:v","b":"1.5"}
+act -1	a:1,b:ping,B:10	{"a-b":null}
+act -1	k_2:1,a:u:v,B:x,b:10,a1:2	
+actE 2	x:u:v,cmd:u:v,k_2:1.5,a:2,b:10
+actE 1	cmd:ping,a1:-1,k_2:u:v
+act 1		{"cmd":"1.5","a1":"true","x":"a b","a":"u:v"}
+act 2		{"x":"u:v","cmd":"u:v","k_2":"2","b":"1.5","role":"ping"}
+case 286
+pin a:2,b:*,a1:*
+pin x:*,a1:x
+pin b:10,a:u:v,cmd:-1
+pin B:*,cmd:*,a-b:*
+pin a:2
+pin role:true,a:*
+act -1		{"a":"u:v","B":"10"}
+act 4	a:2,b:true	{}
+act -1	x:10,k_2:true	
+act 0	a:2	{"a":"2","b":"a b","a1":"ping"}
+actE 2	b:10,a:u:v,cmd:-1,B:true
+act -1	b:1.5	{}
+actE -1	cmd:x,a-b:true
+act -1	a1:a b,B:-1	
+case 287
+pin B:*
+pin a:1.5,x:true,role:1
+pin b:a b
+pin a-b:*,x:true
+pin k_2:*,cmd:*
+pin k_2:10,b:*,a:*,a-b:*
+act 4	k_2:ping,cmd:2	
+actE -1	a:a b,x:true,role:1
+act 4	k_2:true,cmd:-1,role:ping,a-b:-1	
+act -1	x:true,role:2	
+act 4		{"k_2":"10","cmd":"-1","a1":"a b"}
+act 1	a:1.5,x:true,role:1,k_2:ping,cmd:1.5	
+actE 2	b:a b
+act 4	k_2:ping,cmd:ping,a1:10,role:u:v	
+case 288
+pin B:10,b:ping,k_2:*,a-b:*
+act -1		{"x":1.5,"a1":"ping","k_2":"1","role":"x"}
+actE 0	B:10,b:ping,k_2:10,a-b:1,x:a b
+act -1		{"k_2":"true","a-b":"ping"}
+act -1	a-b:1,role:true,B:ping	
+act -1		{"b":"a b","k_2":"u:v","a-b":10,"a":"a b"}
+actE 0	B:10,b:ping,k_2:1,a-b:-1,x:1
+act 0	B:10,b:ping,k_2:1,a-b:u:v	
+act 0	zz:1	{"B":"10","b":"ping","k_2":"a b","a-b":"x","role":"-1"}
+case 289
+pin B:*,a:2,role:x
+pin a-b:x,a1:*
+act -1	a-b:x	{"a-b":"x"}
+act 1	a-b:x,a1:-1	
+act 0	B:x,a:2,role:x,a1:2	
+act -1	x:-1,a1:a b,a:-1,role:ping,cmd:x	
+act -1		{"a1":"-1","x":"x"}
+actE -1	B:2,a:2,b:x,role:-1
+act -1		{"B":"1.5","a":"1","role":"x","b":"true","k_2":"2"}
+act -1	B:1,role:x	
+case 290
+pin a-b:a b
+act 0	a-b:a b,b:a b,a:1.5	
+act 0	zz:1	{"a-b":"a b","role":"x"}
+act -1	role:x	
+act 0		{"a-b":"a b"}
+act 0	a-b:a b	
+act 0	a-b:a b,B:a b	
+actE -1	a-b:x
+act 0	a-b:a b	
+case 291
+pin x:ping,b:1
+pin x:-1,b:*,role:x
+pin k_2:-1
+pin b:*
+pin B:x,role:2
+pin a-b:10,b:x,x:1
+act 4		{"B":"x","role":"2"}
+act 3	x:x,b:1	
+actE 0	x:ping,b:1,a-b:2
+act 3		{"b":"1","a":"ping","cmd":"a b"}
+act 3	b:ping,a1:a b,role:true	
+act 3		{"b":"x","a-b":"10","k_2":"ping","a1":[1,2]}
+act 2		{"k_2":"-1"}
+act 3		{"a-b":"1","b":"x"}
+case 292
+pin b:*,a-b:*
+pin B:*
+pin x:*
+pin k_2:ping,a:u:v,b:u:v
+act 2	x:-1,cmd:a b	
+act 2	x:1,a1:1.5	
+act 0	b:u:v,a-b:2	{"k_2":"-1"}
+act -1	b:1	{"cmd":"x"}
+act 3	k_2:ping,a:u:v,b:u:v	
+actE 1	B:1.5,b:a b,k_2:2
+actE 1	B:1,b:1.5,x:1.5
+actE 1	a1:-1,a-b:2,B:1.5
+case 293
+pin role:*
+pin role:*
+act 1	role:x	
+actE 1	role:ping
+act -1		{"a":2}
+act -1	b:true,x:10,a-b:ping	
+act 1		{"role":"1.5","a-b":"ping"}
+actE 1	role:u:v,a1:2
+act 1	role:true,a1:1	
+act 1		{"b":"u:v","a1":"a b","role":"1","cmd":"x"}
+case 294
+pin a-b:*
+pin b:2,k_2:2
+act 1	b:2,k_2:2	
+actE 0	a-b:ping
+act 0	a-b:-1,B:2	
+act -1	k_2:2,cmd:1,a:10	
+act 1	zz:1	{"b":2,"k_2":2}
+actE -1	b:1,k_2:2,a:10
+actE 1	b:2,k_2:2
+act -1	x:u:v	
+case 295
+pin a-b:10
+pin b:2,a1:x
+pin x:2,B:1
+pin B:*,b:1.5
+pin b:true,a-b:*,x:a b
+pin k_2:-1,role :*
+pin a-b:-1,x:-1,b:2
+act 0	a-b:10	
+act -1	b:x	{"x":"1.5"}
+act 6		{"a-b":"-1","x":"-1","b":"2","a":"10"}
+act 3		{"B":1.5,"b":1.5,"cmd":"-1","role":"2"}
+act -1	B:1	{"B":"1"}
+act 5	k_2:-1	{"role":"x"}
+actE 0	a-b:10
+act -1	B:1	
+case 296
+pin x:x,cmd:-1,a-b:*
+act 0	x:x,cmd:-1,a-b:-1,a1:1	
+act 0	x:x,cmd:-1,a-b:x	
+actE -1	x:true,cmd:-1,k_2:a b
+act -1	x:true,cmd:-1	{"a-b":"u:v","a1":"2"}
+act -1	x:x	
+act 0		{"x":"x","cmd":"-1","a-b":"-1"}
+act -1		{"a":"-1","role":"10","cmd":"u:v","x":null}
+act -1		{"x":"ping","cmd":"-1","role":[1,2]}
+case 297
+pin cmd:-1,k_2:*
+pin role:*,cmd:true
+pin b:-1,cmd:-1
+pin a1:10,a-b:*,B:10
+act -1	zz:1	{"x":"1","role":"2"}
+actE 1	role:1.5,cmd:true,B:a b
+act -1	a1:2,a-b:-1,B:10,cmd:1.5	
+act -1	zz:1	{"cmd":"-1","B":"10"}
+act -1	a1:10,a-b:true	
+act -1		{"k_2":"1.5","a":"2"}
+act -1		{"a-b":"a b","B":"10","role":"u:v"}
+act -1		{"b":"x","cmd":"1","role":"10"}
+case 298
+pin k_2:1.5,B:ping
+pin x:true,k_2:1.5,cmd:*
+pin b:true,role:*
+pin b:a b,a1:*
+pin a:x,k_2:*,a-b:*
+pin k_2 :x,a:2,cmd:*,a-b:true
+actE -1	a:2,k_2:1,a-b:a b,x:-1,b:true
+actE -1	k_2:x,a:2
+actE -1	x:true,k_2:1.5,a-b:true,b:10
+act -1		{"b":"10","role":"x"}
+act -1	x:-1,k_2:u:v,cmd:a b,a1:a b	
+act -1		{"k_2":"x","a":"2","cmd":"u:v","a-b":"true"}
+act -1	k_2:x,a:2,cmd:1.5,a-b:x	
+act -1	a-b:2	
+case 299
+pin a:*,role:10,B:*,x:true
+act 0	zz:1	{"a":"-1","role":"10","B":"a b","x":"true","a1":"10"}
+act -1	a:1,role:10,B:u:v	
+actE -1	role:a b,a-b:-1,a:10,k_2:2,cmd:true
+act -1	a:10,role:10,x:true	{}
+act 0		{"a":"2","role":"10","B":"u:v","x":"true"}
+act 0	a:ping,role:10,B:10,x:true,k_2:10	
+act -1	a-b:10,a:1,role:1.5	
+act -1	cmd:-1,a-b:ping	{"a":-1}
+case 300
+pin B:*,a-b:1.5
+pin k_2:*
+pin role:1.5,a-b :*
+pin a:u:v,x:ping,b:1.5
+pin a1:true,role :10
+pin x :ping,a-b:*,k_2:ping
+pin a:*
+actE 6	a:1.5,x:ping,b:1.5
+act 1	zz:1	{"x":"ping","a-b":"1","k_2":"ping"}
+act 6		{"a":"-1"}
+act -1	B:1,a-b:ping	
+actE -1	b:10,B:10,a1:u:v
+act 2	role:1.5,a-b:true	
+act 1	k_2:true,b:10	
+act 1	zz:1	{"a1":"true","role":"2","k_2":"x"}
+case 301
+pin cmd:*,a1:*
+pin role:true,a-b:*,k_2:a b,x:true
+pin a1:*,x:2,a-b:u:v
+pin B:ping,a1:x,k_2:10,a:2
+pin k_2:u:v
+pin k_2 :-1
+pin a-b:*,a:2
+act 6	zz:1	{"a-b":"u:v","a":"2","a1":"10"}
+act -1	role:true,a-b:-1,k_2:1,x:u:v	
+actE -1	role:2,a-b:10,k_2:a b,x:true
+act 0	cmd:true,a1:u:v	
+act -1	k_2:-1,B:u:v,cmd:x	
+act -1		{"x":2,"a-b":"u:v","a":"true"}
+act 0		{"B":"ping","a1":"x","a":"2","cmd":10,"x":{"a":1}}
+act 6	a-b:1,a:2,k_2:1.5,x:u:v	
+case 302
+pin role :1.5,a-b:*,k_2:1
+pin B:*,cmd:*,a1 :*
+pin b:1,x:*
+pin a-b:*,k_2 :*,a1:1.5
+act 2	b:1,x:a b,B:1	
+act -1		{"x":"-1","cmd":"x","a1":"a b"}
+act 3	a-b:10,k_2:u:v,a1:1.5,x:a b	
+act -1	zz:1	{"role":"1.5","a-b":"-1","k_2":"1","b":-1}
+act -1	cmd:a b,a-b:true,B:u:v,role:ping	
+act 3		{"a-b":"x","k_2":"1.5","a1":"1.5"}
+actE -1	x:-1,b:a b,k_2:x
+actE 1	B:x,cmd:ping,a1:ping,a-b:-1
+case 303
+pin a-b:1.5
+pin a-b:*,k_2:*,x:*
+pin k_2:*,cmd:*
+pin b:u:v,a:*,a-b:*
+pin b:*,x:*,a:*
+pin x:-1
+pin k_2 :*,a-b:u:v
+act 0		{"a-b":"1.5","B":"ping"}
+act 0	a-b:1.5	
+act 5	x:-1,a:1	
+act 0	x:1,a-b:1.5	
+act 3		{"b":"u:v","a":"u:v","a-b":"x"}
+act 1	a-b:1.5,k_2:ping,x:1.5	
+actE 0	a-b:1.5,a1:2
+act 5		{"x":"-1"}
+case 304
+pin k_2:1.5,x:*
+pin a:*
+act 1		{"a":"true"}
+act -1	x:2,b:2	{}
+act -1	cmd:1.5,role:2	
+act 0	k_2:1.5,x:-1	
+actE -1	B:x
+act 1		{"role":"true","a1":"true","a":"10"}
+act -1	a1:10,role:-1,cmd:1.5	{"a1":"10","role":"-1","cmd":"1.5","B":"a b"}
+act 1	a:x	
+case 305
+pin b:1,x:*,k_2:1.5
+pin a1:u:v,k_2:*,b:u:v
+pin cmd:-1
+actE 0	b:1,x:true,k_2:1.5,a1:-1
+act -1	a1:u:v	{"b":"u:v","a":"1","a1":null}
+act -1		{"b":"1","k_2":"1.5","a":"2","a-b":"true"}
+act -1		{"b":"2","a-b":"u:v","cmd":"1.5"}
+act -1	a1:u:v,k_2:2,b:x,a:x	
+act -1	a-b:2,k_2:ping	
+act -1		{"a1":"u:v","k_2":"10","b":"ping","x":"ping"}
+act -1		{"cmd":"a b","b":"-1"}

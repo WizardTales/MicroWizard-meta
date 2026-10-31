@@ -1,0 +1,5 @@
+build/
+build-san/
+test/harness/node_modules/
+*.jsonl
+!bench/results/**/*.jsonl

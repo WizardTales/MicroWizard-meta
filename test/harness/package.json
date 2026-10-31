@@ -1,0 +1,12 @@
+{
+  "name": "microwizard-meta-harness",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Node reference nodes for microwizard-meta: base, echo service, client, capture",
+  "type": "module",
+  "dependencies": {
+    "microwizard": "1.5.0",
+    "msgpackr": "1.11.2",
+    "@wzrdtales/visigoth": "2.0.5"
+  }
+}
