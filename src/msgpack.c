@@ -11,9 +11,6 @@
 
 #include "msgpack.h"
 
-/* meta_text.h's `str(x)` is a macro for a hole, and str is a method here */
-#undef str
-
 /* ------------------------------------------------------------------ buffer */
 
 static int grow(mp_buf_t *self, size_t more) {

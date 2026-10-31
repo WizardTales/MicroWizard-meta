@@ -56,14 +56,14 @@ TESTS := msgpack_test visigoth_test balance_test swim_test mesh_test pattern_tes
 
 all: $(B)/mwm-node $(patsubst %,$(B)/%,$(TESTS))
 
-build/lowered/%.c: src/%.c src/*.h $(RT_INCLUDE)/*.h
+build/lowered/%.c: src/%.c src/*.h $(RT_INCLUDE)/*.h $(META)
 	@mkdir -p build/lowered
 	$(META) -s -emit $@ -I src $< 2>build/lowered/$*.log || \
 	  { cat build/lowered/$*.log; rm -f $@; exit 1; }
 	@! grep -E ': (error|warning|note):' build/lowered/$*.log || \
 	  { echo "meta has something to say about $<"; rm -f $@; exit 1; }
 
-build/lowered/%.c: test/unit/%.c src/*.h $(RT_INCLUDE)/*.h
+build/lowered/%.c: test/unit/%.c src/*.h $(RT_INCLUDE)/*.h $(META)
 	@mkdir -p build/lowered
 	$(META) -s -emit $@ -I src $< 2>build/lowered/$*.log || \
 	  { cat build/lowered/$*.log; rm -f $@; exit 1; }

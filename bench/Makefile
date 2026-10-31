@@ -29,12 +29,12 @@ LIB_LOWERED := $(patsubst %,$(B)/lowered/%.c,$(LIB)) $(B)/lowered/add.c
 
 all: $(B)/bench-local $(B)/bench-client $(B)/bench-node $(B)/loadgen
 
-$(B)/lowered/%.c: $(SRC)/%.c $(SRC)/*.h $(RT_INCLUDE)/*.h
+$(B)/lowered/%.c: $(SRC)/%.c $(SRC)/*.h $(RT_INCLUDE)/*.h $(META)
 	@mkdir -p $(B)/lowered
 	$(META) -s -emit $@ -I $(SRC) $< 2>$(B)/lowered/$*.log || \
 	  { cat $(B)/lowered/$*.log; rm -f $@; exit 1; }
 
-$(B)/lowered/%.c: %.c $(SRC)/*.h *.h $(RT_INCLUDE)/*.h
+$(B)/lowered/%.c: %.c $(SRC)/*.h *.h $(RT_INCLUDE)/*.h $(META)
 	@mkdir -p $(B)/lowered
 	$(META) -s -emit $@ -I . -I $(SRC) $< 2>$(B)/lowered/$*.log || \
 	  { cat $(B)/lowered/$*.log; rm -f $@; exit 1; }
@@ -46,7 +46,7 @@ $(B)/node.c: $(SRC)/main.c addnode.c
 	grep -q '^static int mwm_node_main' $@
 	cat addnode.c >> $@
 
-$(B)/lowered/node.c: $(B)/node.c $(SRC)/*.h *.h $(RT_INCLUDE)/*.h
+$(B)/lowered/node.c: $(B)/node.c $(SRC)/*.h *.h $(RT_INCLUDE)/*.h $(META)
 	@mkdir -p $(B)/lowered
 	$(META) -s -emit $@ -I . -I $(SRC) $< 2>$(B)/lowered/node.log || \
 	  { cat $(B)/lowered/node.log; rm -f $@; exit 1; }
