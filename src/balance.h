@@ -20,7 +20,7 @@
  * try 100 ms later finds nothing to choose, and it is no-current-target.
  *
  * `patient` is the change microwizard's fix/consume-wait makes, and the
- * default here (docs/protokoll.md, "Verteilung"); patient 0 is 1.6.2 exactly:
+ * default here (docs/protocol.md, section 11); patient 0 is 1.6.2 exactly:
  *
  *   - when choose fails after a failed try, wait once closingTimeout +
  *     retryTimeout - long enough for an opened target to be half-open - and

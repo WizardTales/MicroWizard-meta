@@ -135,8 +135,8 @@ static char *answerLine(json_t asked, int thrown, json_t value, int stacked) {
 
   yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
   yyjson_mut_val *out = yyjson_mut_obj(doc);
-  json_t id = asked.get("id");
-  json_t sync = asked.get("sync");
+  json_t id = asked.id;
+  json_t sync = asked.sync;
   char *text;
 
   yyjson_mut_doc_set_root(doc, out);
@@ -172,8 +172,8 @@ static char *answerLine(json_t asked, int thrown, json_t value, int stacked) {
     if (stacked && yyjson_mut_obj_get(error, "stack") == NULL) {
 
       char stack[512];
-      json_t args = asked.get("args");
-      const char *where = !args.isNothing() ? "args" : asked.get("p").text();
+      json_t args = asked.args;
+      const char *where = !args.isNothing() ? "args" : asked.p.text();
 
       snprintf(stack, sizeof stack, "%s: %s\n    at mwm-node (%s)",
                yyjson_mut_get_str(yyjson_mut_obj_get(error, "name")),
@@ -229,8 +229,8 @@ static size_t put(char *out, size_t used, const char *what, size_t length) {
 
 static char *answerFast(json_t asked, json_t value) {
 
-  yyjson_mut_val *id = asked.get("id")._node;
-  yyjson_mut_val *sync = asked.get("sync")._node;
+  yyjson_mut_val *id = asked.id._node;
+  yyjson_mut_val *sync = asked.sync._node;
   char number[32];
   const char *idText;
   size_t idLength;
@@ -317,16 +317,16 @@ META_OWNS char *mwm_respond(const char *line, size_t length) {
   if (asked._refused != NULL)
     return NULL;
 
-  if (asked.get("h").number() == 1)
+  if (asked.h.number() == 1)
     return strdup("{\"h\":2}");
 
-  k = asked.get("k").text();
+  k = asked.k;
 
   if (strcmp(k, "a") != 0 && strcmp(k, "aE") != 0)
     return NULL; /* {input, error: 'unknown method'} has no sync and is not sent */
 
   /* sync false: run it, answer nothing */
-  isSync = asked.get("sync").isNothing() || asked.get("sync").truth();
+  isSync = asked.sync.isNothing() || asked.sync.truth();
 
   if (offline) {
 
@@ -340,13 +340,13 @@ META_OWNS char *mwm_respond(const char *line, size_t length) {
   }
 
   if (strcmp(k, "a") == 0) {
-    handler = findForArgs(asked.get("args"));
+    handler = findForArgs(asked.args);
     if (handler != NULL)
-      answer = handler(asked.get("args"));
+      answer = handler(asked.args);
   } else {
-    handler = findForPattern(asked.get("p").text());
+    handler = findForPattern(asked.p.text());
     if (handler != NULL)
-      answer = handler(asked.get("d"));
+      answer = handler(asked.d);
   }
 
   /* no handler: index.js logs no-target and resolves undefined - no res */
@@ -379,15 +379,15 @@ META_OWNS char *mwm_refuse(const char *line, size_t length) {
   if (asked._refused != NULL)
     return NULL;
 
-  if (asked.get("h").number() == 1)
+  if (asked.h.number() == 1)
     return strdup("{\"h\":2}");
 
-  k = asked.get("k").text();
+  k = asked.k;
 
   if (strcmp(k, "a") != 0 && strcmp(k, "aE") != 0)
     return NULL;
 
-  if (!asked.get("sync").isNothing() && !asked.get("sync").truth())
+  if (!asked.sync.isNothing() && !asked.sync.truth())
     return NULL;
 
   json_t error = {message: "retry_later_err_overload", name: "Error",
@@ -414,26 +414,26 @@ mwm_inline_t mwm_respondInline(const char *line, size_t length, long *running,
   if (asked._refused != NULL)
     return (mwm_inline_t){MWM_BROKEN, NULL};
 
-  if (asked.get("h").number() == 1)
+  if (asked.h.number() == 1)
     return (mwm_inline_t){MWM_ANSWERED, strdup("{\"h\":2}")};
 
-  k = asked.get("k").text();
+  k = asked.k;
 
   if (strcmp(k, "a") != 0 && strcmp(k, "aE") != 0)
     return (mwm_inline_t){MWM_ANSWERED, NULL};
 
-  isSync = asked.get("sync").isNothing() || asked.get("sync").truth();
+  isSync = asked.sync.isNothing() || asked.sync.truth();
 
   /* going offline: mwm_respond says it, and runs nothing */
   if (offline)
     return (mwm_inline_t){MWM_ANSWERED, mwm_respond(line, length)};
 
   if (strcmp(k, "a") == 0) {
-    args = asked.get("args");
+    args = asked.args;
     handler = findForArgs(args);
   } else {
-    args = asked.get("d");
-    handler = findForPattern(asked.get("p").text());
+    args = asked.d;
+    handler = findForPattern(asked.p.text());
   }
 
   if (handler != NULL && !runsInline(handler))

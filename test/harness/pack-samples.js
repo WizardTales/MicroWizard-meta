@@ -6,7 +6,7 @@
 // <name> TAB <hex> TAB <typed dump>, the same shape as swim-bodies.txt. The
 // meta encoder must produce these bytes from the same values, and its
 // decoder the same dump from these bytes. Values JS cannot hold apart (5 and
-// 5.0) are one value; the encoder follows JS there, see docs/protokoll.md.
+// 5.0) are one value; the encoder follows JS there, see docs/protocol.md.
 import { pack, unpack } from 'msgpackr';
 import { dump } from './lib/mpdump.js';
 

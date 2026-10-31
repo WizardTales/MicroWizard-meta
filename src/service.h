@@ -4,7 +4,7 @@
  * that goes back. main.c owns the connections and calls mwm_respond per line.
  *
  * Plain C, read by meta and by the C compiler; service.c is the how and
- * docs/protokoll.md section 10 the what. In short:
+ * docs/protocol.md section 10 the what. In short:
  *
  *   {"h":1}                                  -> {"h":2}
  *   {"id","k":"a","sync":true,"args":{...}}  -> {"id","k":"res","sync":true,"res":...}

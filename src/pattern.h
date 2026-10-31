@@ -5,7 +5,7 @@
  * for the calls that go out, where our own handlers and the pins of other
  * services are in one tree as they are in Node.
  *
- * Plain C, read by meta and by the C compiler. docs/protokoll.md section 10
+ * Plain C, read by meta and by the C compiler. docs/protocol.md section 10
  * says it in prose:
  *
  *   - a message is a set of parts `key:value`: every primitive field on the

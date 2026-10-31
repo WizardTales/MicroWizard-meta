@@ -4,7 +4,7 @@
  *
  * The order of things follows the JS closely enough that a reader with
  * lib/membership.js open beside this can follow along; where the JS does
- * something odd it says so here, and docs/protokoll.md says it again.
+ * something odd it says so here, and docs/protocol.md says it again.
  */
 #include <math.h>
 #include <stdio.h>

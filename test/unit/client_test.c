@@ -75,9 +75,9 @@ task servers;
 
 static char *answerTo(json_t asked, int server, mode_t_ mode, int calls) {
 
-  char *id = asked.get("id").owned();
-  char *args = asked.get("args").isNothing() ? strdup("null")
-                                             : asked.get("args").owned();
+  char *id = asked.id.owned();
+  char *args = asked.args.isNothing() ? strdup("null")
+                                             : asked.args.owned();
   size_t room = strlen(id) + strlen(args) + 256;
   char *out = malloc(room);
 
@@ -126,7 +126,7 @@ static void fakeConn(tcp_t *peer, int server, mode_t_ mode) {
     asked = meta_toJSON(text);
     notes.send((note_t){server, N_LINE, strdup(text)});
 
-    if (asked.get("h").number() == 1) {
+    if (asked.h.number() == 1) {
       if (mode != DEAF)
         peer.writeLine("{\"h\":2}");
     } else if (mode != MUTE) {
@@ -137,7 +137,7 @@ static void fakeConn(tcp_t *peer, int server, mode_t_ mode) {
       out = answerTo(asked, server, mode, calls);
 
       if (mode == JUNK) {
-        char *id = asked.get("id").owned();
+        char *id = asked.id.owned();
         char line[256];
 
         peer.writeLine("this is not json");
@@ -228,14 +228,14 @@ static void lookAll(seen_t *all, long ms) {
 
       json_t line = meta_toJSON(n.text);
 
-      if (line.get("h").number() == 1)
+      if (line.h.number() == 1)
         seen->heartbeats += 1;
       else {
         seen->lines += 1;
         snprintf(seen->last, sizeof seen->last, "%s", n.text);
         if (seen->idCount < 16)
           snprintf(seen->ids[seen->idCount++], sizeof seen->ids[0], "%s",
-                   line.get("id").text());
+                   line.id.text());
       }
 
       line.release();
@@ -366,8 +366,8 @@ static void deadPin(void) {
     json_t data = meta_toJSON("{}");
     mwm_settled_t got = mwm_actE("role:dp,cmd:x", data);
 
-    CHECK(!got.rejected && strcmp(got.value.get("msg").get("from").text(), "s5") == 0,
-          "x gone, actE: %s", got.value.get("msg").get("from").text());
+    CHECK(!got.rejected && strcmp(got.value.msg.from, "s5") == 0,
+          "x gone, actE: %s", got.value.msg.from.text());
     got.value.release();
     data.release();
   }
@@ -587,8 +587,8 @@ static void suite(void) {
     mwm_settled_t got = mwm_actE("cmd:ping,role:lw", data);
 
     CHECK(!got.rejected &&
-              strcmp(got.value.get("who").text(), "local role:lw,cmd:ping") == 0,
-          "actE, ours: %s", got.value.get("who").text());
+              strcmp(got.value.who, "local role:lw,cmd:ping") == 0,
+          "actE, ours: %s", got.value.who.text());
     got.value.release();
     data.release();
   }

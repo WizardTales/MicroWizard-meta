@@ -29,7 +29,7 @@
  *                        else to a random one in [40000, 50000)
  *   wzdc_seneca__tag     the mesh tag; members are "mc~<tag>", default "mesh"
  *   wzdc_baseName        refused: it means a DNS lookup, which this does not
- *                        do (see docs/protokoll.md)
+ *                        do (see docs/protocol.md)
  *
  * Command line, after the environment:
  *
@@ -76,11 +76,11 @@
  * running are finished and answered, and half a second after the last of
  * them the process ends. A second signal ends it at once.
  *
- * The fence: until this has been reviewed for a real mesh, it sends
- * datagrams to 127.0.0.0/8 only and drops - and reports - anything else,
- * listens on 127.0.0.0/8 only, and its client dials 127.0.0.0/8 only. It
- * never resolves a name. docs/zaun.md says what has to be checked before
- * --any-address may be used.
+ * The fence: by default it sends datagrams to 127.0.0.0/8 only and drops -
+ * and reports - anything else, listens on 127.0.0.0/8 only, and its client
+ * dials 127.0.0.0/8 only. It never resolves a name. --any-address lifts the
+ * fence; SWIM and the ndjson calls have no authentication, so only use it
+ * on a network where every peer is trusted.
  */
 #define _GNU_SOURCE
 #include <errno.h>
@@ -499,9 +499,9 @@ static void event(listen_t *listen, const char *what, const mesh_peer_t *peer,
                   json_t meta) {
 
   char *pin = NULL;
-  json_t config = meta.get("config");
+  json_t config = meta.config;
 
-  pin = jsonQuotedOf(config.get("pin").at(0).text());
+  pin = jsonQuotedOf(config.pin.at(0).text());
 
   if (pin == NULL)
     return;
@@ -510,8 +510,8 @@ static void event(listen_t *listen, const char *what, const mesh_peer_t *peer,
          "\"pin\":%s,\"tcp\":\"%s:%ld\",\"instance\":\"%s\","
          "\"incarnation\":%lld}\n",
          what, wallMs(), listen->index, peer->identifier, peer->host, pin,
-         config.get("host").text(), config.get("port").number(),
-         meta.get("instance").text(), (long long)peer->incarnation);
+         config.host.text(), config.port.number(),
+         meta.instance.text(), (long long)peer->incarnation);
   fflush(stdout);
   free(pin);
 }
@@ -529,7 +529,7 @@ static void meshEmit(void *context, int added, const mesh_peer_t *peer) {
   defer meta.release();
 
   if (meta._refused != NULL ||
-      strcmp(meta.get("instance").text(), node->instance) == 0)
+      strcmp(meta.instance, node->instance) == 0)
     return;
 
   if (node->config.events)
@@ -960,8 +960,8 @@ static void acceptAll(@scope all, tcpListener_t *server, long *running,
 /** One outcome line: the call's tag, how long it took, what it settled with. */
 static void tell(json_t asked, long ms, int rejected, json_t got) {
 
-  char *tag = asked.get("tag").isNothing() ? strdup("null")
-                                           : yyjson_mut_val_write(asked.get("tag")._node, 0, NULL);
+  char *tag = asked.tag.isNothing() ? strdup("null")
+                                           : yyjson_mut_val_write(asked.tag._node, 0, NULL);
   char *value = got.isNothing() ? NULL : yyjson_mut_val_write(got._node, 0, NULL);
   size_t room = strlen(tag) + (value != NULL ? strlen(value) : 0) + 128;
   char *line = (char *)malloc(room);
@@ -1002,11 +1002,11 @@ static void caller(char *text) {
     return;
   }
 
-  if (!asked.get("actE").isNothing())
-    got = mwm_actE(asked.get("actE").text(), asked.get("data"));
+  if (!asked.actE.isNothing())
+    got = mwm_actE(asked.actE.text(), asked.data);
   else
-    got = mwm_act(asked.get("act").isNothing() ? NULL : asked.get("act").text(),
-                  asked.get("args"));
+    got = mwm_act(asked.act.isNothing() ? NULL : asked.act.text(),
+                  asked.args);
 
   tell(asked, meta_monotonicMs() - began, got.rejected, got.value);
   got.value.release();

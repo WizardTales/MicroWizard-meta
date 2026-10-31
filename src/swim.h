@@ -3,7 +3,7 @@
  * on the wire and in its decisions.
  *
  * Plain C, read by meta and by the C compiler; swim.c is the implementation
- * and docs/protokoll.md the description. This is the core alone: no socket,
+ * and docs/protocol.md the description. This is the core alone: no socket,
  * no clock. Bytes come in through swim_receive, time through swim_advance,
  * and what has to go out goes to the send callback as finished datagrams
  * with the "ip:port" they are for. main.c is the driver that owns the UDP

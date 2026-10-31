@@ -18,7 +18,7 @@
  * msgpackr as a BigInt, and swim-ng does `incarnation + 1` with it - a
  * TypeError. Date.now() goes out as a float64 (0xcb) because it is neither an
  * int32 nor a uint32, so an incarnation has to go back the same way.
- * docs/protokoll.md has the whole table.
+ * docs/protocol.md has the whole table.
  *
  * The typed dump (mp_dump, mp_dumpTree) is the text test/harness/lib/mpdump.js
  * writes for the same bytes, so a golden file says what the bytes *were*:

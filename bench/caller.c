@@ -65,7 +65,7 @@ static int once(void) {
     args.release();
   }
 
-  good = !got.rejected && got.value.get("res").number() == 8;
+  good = !got.rejected && (long)got.value.res == 8;
   got.value.release();
 
   return good;

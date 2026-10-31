@@ -209,15 +209,15 @@ void mesh_update(mesh_t *self, const swim_member_t *m) {
   if (meta._refused != NULL)
     return;
 
-  identifier = meta.get("identifier$").text();
+  identifier = meta["identifier$"];
 
-  if (strcmp(meta.get("tag$").text(), self->tagged) != 0 ||
+  if (strcmp(meta["tag$"], self->tagged) != 0 ||
       identifier[0] == 0 || strcmp(identifier, self->identifier) == 0 ||
       strlen(identifier) >= MESH_ID_MAX)
     return;
 
   if (m->state == SWIM_ALIVE)
-    addNode(self, m, identifier, meta.get("v$").number());
+    addNode(self, m, identifier, meta["v$"].number());
   else if (m->state == SWIM_FAULTY)
     removeNode(self, m, identifier);
 }

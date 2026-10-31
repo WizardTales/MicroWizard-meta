@@ -4,7 +4,7 @@
  * balance.js and visigoth deciding who gets a call.
  *
  * Plain C, read by meta and by the C compiler; client.c is the how and
- * docs/protokoll.md sections 9 to 11 the what. In short:
+ * docs/protocol.md sections 9 to 11 the what. In short:
  *
  *   - the mesh tells the client about members (mwm_clientMember, from the
  *     sneeze table in mesh.c). Every pin a member announces is a target,

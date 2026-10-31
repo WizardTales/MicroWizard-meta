@@ -45,7 +45,7 @@ static double nowS(void) {
  */
 static int check(mwm_settled_t got) {
 
-  int good = !got.rejected && !got.value.get("res").isNothing();
+  int good = !got.rejected && !got.value.res.isNothing();
 
   got.value.release();
 
@@ -76,7 +76,7 @@ static int runActE(void) {
 static int runActEMix(void) {
   json_t args = {a: 5, b: 3};
   char pattern[64];
-  snprintf(pattern, sizeof pattern, "cmd:add,a:%ld", args.get("a").number());
+  snprintf(pattern, sizeof pattern, "cmd:add,a:%ld", args.a.number());
   int good = check(mwm_actE(pattern, args));
   args.release();
   return good;

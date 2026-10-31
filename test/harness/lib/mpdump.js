@@ -3,7 +3,7 @@
 // msgpackr.unpack answers with JS values, which forgets exactly what this
 // harness is for: whether Date.now() went out as a float64 or a uint64, and
 // whether a map was a fixmap or a map16. This walks the bytes itself and
-// writes the typed dump the meta side writes too (see docs/protokoll.md,
+// writes the typed dump the meta side writes too (see docs/protocol.md,
 // "Typisierte Darstellung"), so the two can be compared as text.
 //
 //   nil  true  false  u:5  i:-5  f:1730000000000  f:0x3ff8000000000000

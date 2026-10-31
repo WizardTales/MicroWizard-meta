@@ -593,11 +593,11 @@ static void member(state_t *st, int added, const char *identifier,
   if (meta._refused != NULL)
     return;
 
-  if (strcmp(meta.get("instance").text(), st->options.instance) == 0)
+  if (strcmp(meta.instance, st->options.instance) == 0)
     return;
 
-  config = meta.get("config");
-  pinned = config.get("pin");
+  config = meta.config;
+  pinned = config.pin;
   pin = pinned.count() > 0 && pinned._node != NULL && yyjson_mut_is_arr(pinned._node)
             ? pinned.at(0).text()
             : pinned.text();
@@ -646,8 +646,8 @@ static void member(state_t *st, int added, const char *identifier,
     return;
   }
 
-  type = config.get("type").text();
-  model = config.get("model").text();
+  type = config.type;
+  model = config.model;
 
   if (type[0] != 0 && strcmp(type, "tcp") != 0) {
     say("not a target, type is not tcp:", id);
@@ -664,7 +664,7 @@ static void member(state_t *st, int added, const char *identifier,
     return;
   }
 
-  if (!dialable(st, config.get("host").text())) {
+  if (!dialable(st, config.host)) {
     say("not a target, outside the fence or not an address:", id);
     free(id);
     free(key);
@@ -713,15 +713,15 @@ static void member(state_t *st, int added, const char *identifier,
   t->id = id;
   t->identifier = textOf(identifier);
   t->pin = textOf(pin);
-  snprintf(t->host, sizeof t->host, "%s", config.get("host").text());
-  t->port = (int)config.get("port").number();
+  snprintf(t->host, sizeof t->host, "%s", config.host.text());
+  t->port = config.port;
 
   /* {...settings, ...pinConfig}: what the member announces wins */
-  t->timeout = config.get("timeout").isNothing() ? st->options.timeout
-                                                  : config.get("timeout").number();
-  t->connectTimeout = config.get("connectTimeout").isNothing()
+  t->timeout = config.timeout.isNothing() ? st->options.timeout
+                                                  : config.timeout.number();
+  t->connectTimeout = config.connectTimeout.isNothing()
                           ? st->options.connectTimeout
-                          : config.get("connectTimeout").number();
+                          : config.connectTimeout.number();
   t->group = g;
 
   /* the end of the list: visigoth's ring is in insertion order too */
@@ -921,20 +921,20 @@ static void answer(side_t *s, conn_t *c, const char *text, size_t length,
   }
 
   /* the keepalive's answer: traffic, and nothing else */
-  if (got.get("h")._node != NULL && yyjson_mut_is_num(got.get("h")._node) &&
-      got.get("h").real() == 2) {
+  if (got.h._node != NULL && yyjson_mut_is_num(got.h._node) &&
+      got.h.real() == 2) {
     got.release();
     return;
   }
 
-  if (strcmp(got.get("k").text(), "res") != 0 ||
-      got.get("k")._node == NULL || !yyjson_mut_is_str(got.get("k")._node)) {
+  if (strcmp(got.k, "res") != 0 ||
+      got.k._node == NULL || !yyjson_mut_is_str(got.k._node)) {
     dropped(s, "invalid_kind_res", text, now);
     got.release();
     return;
   }
 
-  id = got.get("id");
+  id = got.id;
 
   if (id._node != NULL && yyjson_mut_is_null(id._node)) {
     dropped(s, "no_message_id", text, now);
@@ -946,10 +946,10 @@ static void answer(side_t *s, conn_t *c, const char *text, size_t length,
    * sync false is accepted and nothing more: the call it answers goes on
    * waiting. An error in one is said, as unexcepted_async_error.
    */
-  sync = got.get("sync");
+  sync = got.sync;
 
   if (sync._node != NULL && !sync.truthy()) {
-    if (got.get("error").truthy())
+    if (got.error.truthy())
       dropped(s, "unexcepted_async_error", text, now);
     got.release();
     return;
@@ -972,7 +972,7 @@ static void answer(side_t *s, conn_t *c, const char *text, size_t length,
       pending_t *waiting = *p;
 
       /* the target goes with an error only: an overload or a timeout opens it */
-      char *target = got.get("error").truthy() ? maybe(s->targetId) : NULL;
+      char *target = got.error.truthy() ? maybe(s->targetId) : NULL;
 
       deliver(waiting->back, got, target);
       forget(s, waiting);
@@ -1710,9 +1710,9 @@ static json_t copyOf(yyjson_mut_val *value) {
 /** The error the service sent, as balance.js tells overload and timeout apart. */
 static int retryable(json_t error) {
 
-  return strcmp(error.get("details").get("message").text(),
+  return strcmp(error.details.message,
                 "retry_later_err_overload") == 0 ||
-         strcmp(error.get("message").text(), "timeout") == 0;
+         strcmp(error.message, "timeout") == 0;
 }
 
 /** A rejection as actAsync settles with it. */
@@ -1819,7 +1819,7 @@ static mwm_settled_t consume(const char *shown, mwm_parts_t *parts, char *rest,
 
     /* an answer */
     got = r.got;
-    error = got.get("error");
+    error = got.error;
 
     /* `!data.error`: an error that is null, false, 0 or "" is no error */
     if (error.truthy()) {
@@ -1849,7 +1849,7 @@ static mwm_settled_t consume(const char *shown, mwm_parts_t *parts, char *rest,
     }
 
     {
-      json_t res = copyOf(got.get("res")._node);
+      json_t res = copyOf(got.res._node);
       out = (mwm_settled_t){0, res};
     }
     free(r.target);

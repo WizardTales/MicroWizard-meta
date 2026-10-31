@@ -40,7 +40,7 @@ static mwm_answer_t overload(json_t args) {
 
 static mwm_answer_t slow(json_t args) {
 
-  long ms = args.get("ms").isNothing() ? 6000 : args.get("ms").number();
+  long ms = args.ms.isNothing() ? 6000 : args.ms.number();
 
   meta_sleepMs(ms);
 
@@ -52,7 +52,7 @@ static mwm_answer_t slow(json_t args) {
 /** ping after ms milliseconds: what concurrency is tested with. */
 static mwm_answer_t delay(json_t args) {
 
-  long ms = args.get("ms").isNothing() ? 0 : args.get("ms").number();
+  long ms = args.ms.isNothing() ? 0 : args.ms.number();
 
   if (ms > 0)
     meta_sleepMs(ms);
@@ -68,7 +68,7 @@ static mwm_answer_t delay(json_t args) {
  */
 static mwm_answer_t burn(json_t args) {
 
-  long n = args.get("n").isNothing() ? BURN_ROUNDS : args.get("n").number();
+  long n = args.n.isNothing() ? BURN_ROUNDS : args.n.number();
   uint64_t x = 0x9E3779B97F4A7C15ull;
 
   for (long i = 0; i < n; ++i) {

@@ -1,39 +1,39 @@
 #!/bin/sh
 #
-# Alles, was ohne Netz nach draußen geht, in einem Lauf:
+# Everything that needs no network beyond 127.0.0.1, in one run:
 #
-#   1. die Node-Abhängigkeiten des Harness (pnpm, offline aus dem Store,
-#      sonst aus der Registry)
-#   2. die Golden Files der visigoth-Spur gegen das echte visigoth neu
-#      erzeugt und verglichen - sie dürfen nicht von Hand gepflegt sein;
-#      ebenso die Muster-Spur gegen microwizard fix/pattern-shadow, wenn
-#      es einen Checkout davon gibt (MWM_MICROWIZARD)
-#   3. make: mwm-node und die Unit-Tests in meta (msgpack, visigoth,
-#      balance, swim, mesh, pattern, service, client - der dreimal: wie
-#      1.6.2 (--no-patient), mit patient, dem Standard, und mit kurzem
-#      Timeout); dann pattern_test gegen eine frische Spur mit zufälligem
-#      Seed (MWM_PATTERN_SEED), Gewinner für Gewinner gegen microwizard
-#   4. reference.js: was ein Node-Aufrufer von einem Node-Dienst zurückbekommt
-#   5. interop.js: mwm-node im Mesh mit Node-Knoten
-#   6. meshclient.js: der Client von mwm-node im Mesh, gegen Node verglichen
-#   7. deadpin.js: ein Pin, dessen letztes Mitglied weg ist, fällt aus dem
-#      Abgleich des Clients (microwizard fix/dead-pin)
-#   8. concurrency.js: viele Aufrufe zugleich über eine Verbindung, in beide
-#      Richtungen, die Grenze --max-inflight und SIGTERM mit laufenden Aufrufen
+#   1. the harness's Node dependencies (pnpm, offline from the store,
+#      otherwise from the registry)
+#   2. the golden file of the visigoth trace regenerated from the real
+#      visigoth and compared - it must never be edited by hand; likewise
+#      the pattern trace against microwizard fix/pattern-shadow when there
+#      is a checkout of it (MWM_MICROWIZARD)
+#   3. make: mwm-node and the unit tests in meta (msgpack, visigoth,
+#      balance, swim, mesh, pattern, service, client - the last three
+#      times: as 1.6.2 (--no-patient), with patient, the default, and with a
+#      short timeout); then pattern_test against a fresh trace with a random
+#      seed (MWM_PATTERN_SEED), winner by winner against microwizard
+#   4. reference.js: what a Node caller gets back from a Node service
+#   5. interop.js: mwm-node in a mesh with Node nodes
+#   6. meshclient.js: mwm-node's client in the mesh, compared with Node
+#   7. deadpin.js: a pin whose last member is gone drops out of the
+#      client's matching (microwizard fix/dead-pin)
+#   8. concurrency.js: many calls at once over one connection, in both
+#      directions, the --max-inflight cap and SIGTERM with calls running
 #
-# Alles auf 127.0.0.1. Der Basisknoten des Harness liegt auf UDP 38999
-# (MWM_BASE_PORT), nicht auf 39999 (der Standard von microwizard) und nicht auf 39000/39001
-# (gern ein lokales Dev-Mesh); ist der Port schon belegt, bricht das hier
-# ab, statt sich in ein fremdes Mesh zu hängen.
+# All on 127.0.0.1. The harness's base node sits on UDP 38999
+# (MWM_BASE_PORT), not on 39999 (microwizard's default) and not on
+# 39000/39001 (often used for a local dev mesh); if the port is taken this
+# stops instead of joining somebody else's mesh.
 #
-#   test/run.sh            alles
-#   test/run.sh unit       nur 1-3
-#   META=/pfad/meta test/run.sh
-#   MWM_SAN=1 test/run.sh  alles mit ASan und UBSan (build-san/)
-#   MWM_MICROWIZARD=/pfad/zu/microWizard test/run.sh
-#                          der Checkout mit dem Matcher von fix/pattern-shadow;
-#                          ohne ihn wird neben dem Repo gesucht, sonst
-#                          bleibt es bei der Golden File
+#   test/run.sh            everything
+#   test/run.sh unit       1-3 only
+#   META=/path/meta test/run.sh
+#   MWM_SAN=1 test/run.sh  everything with ASan and UBSan (build-san/)
+#   MWM_MICROWIZARD=/path/to/MicroWizard test/run.sh
+#                          the checkout with the matcher of fix/pattern-shadow;
+#                          without it one beside the repository is looked
+#                          for, otherwise the golden file is all there is
 
 set -eu
 
@@ -47,14 +47,14 @@ san=
 if [ -n "${MWM_SAN:-}" ]; then
   build=$repo/build-san
   san=SAN=1
-  # mwm-node endet mit exit() aus einem Task, dessen Stack die Leck-Suche
-  # nicht sieht - was nur ein Task-Stack hält, gälte ihr als verloren; die
-  # Unit-Tests enden in main und werden auf Lecks geprüft
+  # mwm-node ends with exit() from a task whose stack the leak check does
+  # not see - whatever only a task stack holds would count as lost; the
+  # unit tests end in main and are checked for leaks
   export ASAN_OPTIONS=${ASAN_OPTIONS:-abort_on_error=1:detect_leaks=1}
   export UBSAN_OPTIONS=${UBSAN_OPTIONS:-print_stacktrace=1:halt_on_error=1}
 fi
 
-# nichts aus einer wzdc-Konfiguration der Shell darf hier hineinreichen
+# nothing from a wzdc configuration in the shell may reach in here
 for v in $(env | sed -n 's/^\(wzdc_[^=]*\)=.*/\1/p'); do unset "$v"; done
 
 if [ ! -d "$harness/node_modules/microwizard" ]; then
@@ -62,17 +62,16 @@ if [ ! -d "$harness/node_modules/microwizard" ]; then
   (cd "$harness" && { pnpm install --offline >/dev/null 2>&1 || pnpm install >/dev/null; })
 fi
 
-echo "# visigoth-Spur gegen @wzrdtales/visigoth 2.0.5"
+echo "# visigoth trace against @wzrdtales/visigoth 2.0.5"
 node "$harness/visigoth-trace.js" 7 3000 | cmp -s - "$here/fixtures/visigoth-trace.txt" || {
-  echo "not ok - test/fixtures/visigoth-trace.txt ist nicht, was visigoth sagt" >&2
+  echo "not ok - test/fixtures/visigoth-trace.txt is not what visigoth says" >&2
   exit 1
 }
 
-# microwizard mit dem Matcher von fix/pattern-shadow (test/pattern.test.js
-# ist sein Kennzeichen) und mit node_modules
+# microwizard with the matcher of fix/pattern-shadow (test/pattern.test.js
+# marks it) and with node_modules
 mw=
-for d in ${MWM_MICROWIZARD:-} "$repo/../microWizard-pattern-shadow" \
-         "$repo/../../wt/microWizard-pattern-shadow" "$repo/../../microWizard"; do
+for d in ${MWM_MICROWIZARD:-} "$repo/../MicroWizard" "$repo/../microWizard"; do
   if [ -f "$d/test/pattern.test.js" ] && [ -d "$d/node_modules" ]; then
     mw=$(CDPATH= cd -- "$d" && pwd)
     break
@@ -80,16 +79,16 @@ for d in ${MWM_MICROWIZARD:-} "$repo/../microWizard-pattern-shadow" \
 done
 
 if [ -n "$mw" ]; then
-  echo "# Muster-Spur gegen $mw"
+  echo "# pattern trace against $mw"
   node "$harness/pattern-trace.js" "$mw" 7 300 | cmp -s - "$here/fixtures/pattern-trace.txt" || {
-    echo "not ok - test/fixtures/pattern-trace.txt ist nicht, was microwizard sagt" >&2
+    echo "not ok - test/fixtures/pattern-trace.txt is not what microwizard says" >&2
     exit 1
   }
 elif [ -n "${MWM_MICROWIZARD:-}" ]; then
-  echo "not ok - $MWM_MICROWIZARD hat kein test/pattern.test.js oder keine node_modules" >&2
+  echo "not ok - $MWM_MICROWIZARD has no test/pattern.test.js or no node_modules" >&2
   exit 1
 else
-  echo "# Muster-Spur: kein microwizard mit fix/pattern-shadow gefunden, nur die Golden File"
+  echo "# pattern trace: no microwizard with fix/pattern-shadow found, the golden file only"
 fi
 
 echo "# make"
@@ -98,9 +97,9 @@ make -s -C "$repo" ${META:+META="$META"} $san check
 
 if [ -n "$mw" ]; then
   seed=${MWM_PATTERN_SEED:-$(od -An -N4 -tu4 /dev/urandom | tr -d ' ')}
-  echo "# pattern_test gegen microwizard, Seed $seed (MWM_PATTERN_SEED=$seed wiederholt ihn)"
+  echo "# pattern_test against microwizard, seed $seed (MWM_PATTERN_SEED=$seed repeats it)"
   node "$harness/pattern-trace.js" "$mw" "$seed" 2000 | "$build/pattern_test" - || {
-    echo "not ok - pattern_test weicht bei Seed $seed von microwizard ab" >&2
+    echo "not ok - pattern_test differs from microwizard at seed $seed" >&2
     exit 1
   }
 fi
@@ -108,12 +107,12 @@ fi
 [ "${1:-}" = unit ] && exit 0
 
 if ss -uln 2>/dev/null | grep -q ":$port "; then
-  echo "not ok - UDP $port ist belegt; ein alter Harness-Knoten? (pgrep -af 'base.js|echo.js')" >&2
+  echo "not ok - UDP $port is taken; an old harness node? (pgrep -af 'base.js|echo.js')" >&2
   exit 1
 fi
 
-# die Knoten, die der Harness startet: keine Leck-Suche bei exit() (s. o.),
-# und was die Sanitizer sagen, in Dateien - ihr stderr sieht hier keiner
+# the nodes the harness starts: no leak check at exit() (see above), and
+# what the sanitizers say goes to files - nobody sees their stderr here
 if [ -n "$san" ]; then
   reports=$(mktemp -d)
   trap 'rm -rf "$reports"' EXIT
@@ -137,7 +136,7 @@ echo "# concurrency.js"
 node "$harness/concurrency.js" "$build/mwm-node"
 
 if [ -n "$san" ] && [ -n "$(ls -A "$reports")" ]; then
-  echo "not ok - die Sanitizer haben etwas gefunden:" >&2
+  echo "not ok - the sanitizers found something:" >&2
   cat "$reports"/* >&2
   exit 1
 fi

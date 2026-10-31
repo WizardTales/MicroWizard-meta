@@ -4,7 +4,7 @@
  *
  * Ported decision for decision, quirks included, because a meta client in
  * the mesh should spread load and back off exactly as a Node one does.
- * docs/protokoll.md ("visigoth") has the behaviour in prose; the short form:
+ * docs/protocol.md ("visigoth") has the behaviour in prose; the short form:
  *
  *   - a ring of targets in insertion order (scores are all 1 in microwizard),
  *     one shared cursor that only moves forward: round robin

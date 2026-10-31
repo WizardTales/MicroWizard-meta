@@ -1,11 +1,11 @@
 #!/bin/sh
 #
-# Baut mwm-node und die Unit-Tests nach build/.
+# Builds mwm-node and the unit tests into build/.
 #
-#   ./build.sh               mit `meta` aus dem PATH, sonst ../../metalanguage/meta
-#   META=/pfad/meta ./build.sh
+#   ./build.sh               with `meta` from PATH, otherwise ../../metalanguage/meta
+#   META=/path/meta ./build.sh
 #
-# Das eigentliche Rezept ist das Makefile; das hier sucht nur meta.
+# The recipe itself is the Makefile; this only finds meta.
 
 set -eu
 
@@ -15,7 +15,7 @@ if [ -z "${META:-}" ]; then
   META=$(command -v meta 2>/dev/null || echo "$here/../../metalanguage/meta")
 fi
 
-[ -x "$META" ] || { echo "kein meta unter $META - META setzen" >&2; exit 1; }
+[ -x "$META" ] || { echo "no meta at $META - set META" >&2; exit 1; }
 
 make -C "$here" META="$META" all
 echo "$here/build/mwm-node"

@@ -1,7 +1,7 @@
 // What a Node caller gets back from a service - the Node echo service
 // (echo.js, role:echo) and the meta one (mwm-node --echo meta, role:meta),
 // case by case, side by side. Both have to give the same answer, and the
-// answer has to be the one docs/protokoll.md describes; for each case the
+// answer has to be the one docs/protocol.md describes; for each case the
 // gateway's view (actAsync().then(defaultError), graphql-js) is compared
 // as well.
 //

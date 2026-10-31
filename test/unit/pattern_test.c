@@ -337,14 +337,14 @@ static void throughService(void) {
     mwm_settled_t got = mwm_act("a:1", args);
 
     CHECK(!got.rejected &&
-              strcmp(got.value.get("who").text(), "a:1,b:*") == 0,
-          "mwm_act a:1 {b:1}: %s", got.value.get("who").text());
+              strcmp(got.value.who, "a:1,b:*") == 0,
+          "mwm_act a:1 {b:1}: %s", got.value.who.text());
     got.value.release();
 
     got = mwm_actE("role:mwmtest,cmd:ping", none);
     CHECK(!got.rejected &&
-              strcmp(got.value.get("who").text(), "role:mwmtest,cmd:*") == 0,
-          "mwm_actE: %s", got.value.get("who").text());
+              strcmp(got.value.who, "role:mwmtest,cmd:*") == 0,
+          "mwm_actE: %s", got.value.who.text());
     got.value.release();
     args.release();
   }
