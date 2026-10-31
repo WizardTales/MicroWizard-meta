@@ -110,6 +110,9 @@
 /* tcp.js: a connection nobody has said anything on for 3 min is ended */
 #define IDLE_MS (3L * 60 * 1000)
 #define LONGEST (16 * 1024 * 1024)
+/* what a reader takes in one turn before it lets its carrier's others run */
+#define TURN_LINES 32
+#define TURN_BYTES 65536
 #define MAX_INFLIGHT 10000
 #define GRACE_MS 500
 #define DRAIN_MS 50
@@ -800,10 +803,11 @@ static void handle(tcp_t *peer, char *text, long *running, long *writing,
 }
 
 /**
- * The answers a reader has made and not written yet: every line already in
- * its read buffer is answered before any of them go, and then all of them go
- * in one write - a wake that brings sixty-four calls costs one write, not
- * sixty-four. Lines from tasks (handle) still write their own.
+ * The answers a reader has made and not written yet: the lines already in
+ * its read buffer are answered before any of them go, a turn's worth at most
+ * (serve), and then all of them go in one write - a wake that brings
+ * thirty-two calls costs one write, not thirty-two. Lines from tasks
+ * (handle) still write their own.
  */
 typedef struct {
   char *text;
@@ -874,6 +878,7 @@ static void serve(@scope all, tcp_t *peer, long *running, long max) {
   long writing = 1;
   drained_t drained;
   pending_t pending = {NULL, 0, 0};
+  long turn = 0;
 
   peer.idle(IDLE_MS);
 
@@ -883,15 +888,30 @@ static void serve(@scope all, tcp_t *peer, long *running, long max) {
     size_t length;
     mwm_inline_t reading;
 
-    /* the answers made so far go before a read that may wait, and at 64 KiB */
-    if (pending.length >= 65536 || !lineWaiting(peer))
+    /**
+     * The answers made so far go before a read that may wait. And a turn is
+     * TURN_LINES lines or TURN_BYTES of answers: then they go, and the reader
+     * goes to the back of its carrier's queue. Answering everything in the
+     * buffer before parking again held the carrier's other readers for all
+     * of it - 256 connections with sixteen calls each on one carrier had a
+     * p99 of 100 ms. Only with a whole line still waiting, so the yield
+     * always comes back to work and never to a read.
+     */
+    if (!lineWaiting(peer)) {
       pendingFlush(peer, &pending);
+      turn = 0;
+    } else if (turn >= TURN_LINES || pending.length >= TURN_BYTES) {
+      pendingFlush(peer, &pending);
+      meta_yield();
+      turn = 0;
+    }
 
     text = peer.line(LONGEST);
 
     if (text == NULL)
       break;
 
+    ++turn;
     length = peer.length();
 
     if (length == 0)

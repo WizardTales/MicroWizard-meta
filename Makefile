@@ -43,6 +43,10 @@ ifneq ($(MAKECMDGOALS),clean)
 ifeq ($(wildcard $(RT_INCLUDE)/meta_tcp.h),)
 $(error $(META) has no meta_tcp.h - build against parser-rewrite: META=../../metalanguage/meta)
 endif
+# a reader gives its carrier back after a turn (serve): meta_yield
+ifeq ($(shell grep -l meta_yield $(RT_INCLUDE)/meta_tasks.h 2>/dev/null),)
+$(error $(META) has no meta_yield - build against a newer parser-rewrite)
+endif
 endif
 
 LIB := msgpack visigoth balance swim mesh pattern service echo client

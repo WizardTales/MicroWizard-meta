@@ -53,14 +53,41 @@ p99:
   help there.
 - At 1000 connections with 4 or 8 carriers the load generator is saturated
   (93–100 % of its cores): lower bounds.
-- The 98.6 ms are a fairness issue of the runtime, not a throughput issue.
-  A busy carrier looks for ready sockets every 10 µs and puts their readers
-  ahead of its queue (`META_POLL_US` in metalanguage
-  `runtime/meta_tasks.c`). Most calls are served at once (p50 27 µs), a few
-  get overtaken again and again. On average a call waits 5 ms with meta
-  (1000 / 201 k/s) and 9.8 ms with Node; Node serves every connection once
-  per turn of its event loop and spreads the wait evenly. With 8 carriers
-  the server is not saturated, its queue runs dry, and p99 falls to 4.5 ms.
+- The 98.6 ms were `META_REHOME_MS` in the runtime: a reader that became
+  ready on a busy carrier moved to the shared queue at most once every
+  100 ms, and a saturated carrier only looks there once its own queue is
+  empty. With 8 carriers the server is not saturated, its queue runs dry,
+  and p99 falls to 4.5 ms.
+
+### After metalanguage 2769af7 (fairness)
+
+A task moves to the shared queue only when some carrier can take it from
+there; what a carrier's poll finds goes ahead of its queue only while
+nothing queued has waited 250 µs; and a connection's reader answers at most
+32 lines or 64 KiB per turn, then yields with `meta_yield` (details in
+metalanguage `doc/runtime.md`, "A saturated carrier left some readers
+waiting 100 ms"). Medians of 4 rounds, before and after built and run
+alternately:
+
+| Point | Before: rate, p50 / p99 | After: rate, p50 / p99 |
+|---|---|---|
+| 1 carrier, 1000×1 | 208 k/s, 0.03 / 101 ms | 182 k/s, 5.4 / 6.8 ms |
+| 1 carrier, 256×16 | 1.60 M/s, 0.04 / 99 ms | 1.44 M/s, 2.8 / 2.9 ms |
+| 1 carrier, 16×16 | 1.73 M/s, 0.04 / 0.19 ms | 1.57 M/s, 0.11 / 0.32 ms |
+| 1 carrier, 1×1000 | 1.86 M/s, 0.50 / 0.93 ms | 2.44 M/s, 0.40 / 0.53 ms |
+| 1 carrier, 1×1 | 55 k/s, 16 / 34 µs | 54 k/s, 17 / 35 µs |
+| 4 carriers, 1000×1 | 545 k/s, 0.35 / 47 ms | 456 k/s, 1.9 / 6.0 ms |
+| 4 carriers, 256×16 | 3.69 M/s, 0.05 / 51 ms | 3.76 M/s, 0.35 / 3.4 ms |
+| 4 carriers, 16×16 | 3.85 M/s, 0.04 / 0.21 ms | 3.95 M/s, 0.04 / 0.31 ms |
+| 4 carriers, 1×1000 | 1.77 M/s, 0.52 / 1.13 ms | 2.24 M/s, 0.43 / 0.98 ms |
+
+- Serving every connection in turn costs one carrier 10–13 % at 1000×1 and
+  256×16 – the price of no longer serving the lucky ones over and over; Node
+  does 102 k/s at p99 11–13 ms there.
+- 4 carriers at 1000×1 is limited by the load generator and varied from
+  360 k/s to 660 k/s within one build.
+- Two builds of identical code differed by up to ±15 % on this machine,
+  hence the alternating runs.
 
 ### Connections × calls in flight
 
