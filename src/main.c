@@ -854,6 +854,7 @@ static void serve(@scope all, tcp_t *peer, long *running, long max) {
   drained_t drained;
   pending_t pending = {NULL, 0, 0};
   long turn = 0;
+  size_t answered = 0;
 
   peer.idle(IDLE_MS);
 
@@ -865,20 +866,29 @@ static void serve(@scope all, tcp_t *peer, long *running, long max) {
 
     /**
      * The answers made so far go before a read that may wait. And a turn is
-     * TURN_LINES lines or TURN_BYTES of answers: then they go, and the reader
-     * goes to the back of its carrier's queue. Answering everything in the
-     * buffer before parking again held the carrier's other readers for all
-     * of it - 256 connections with sixteen calls each on one carrier had a
-     * p99 of 100 ms. Only with a whole line still waiting, so the yield
-     * always comes back to work and never to a read.
+     * TURN_LINES lines or TURN_BYTES of answers, however many reads it took:
+     * then they go, and the reader goes to the back of its carrier's queue.
+     * Answering everything in the buffer before parking again held the
+     * carrier's other readers for all of it.
+     *
+     * The turn does not start again when the buffer runs dry. A read that
+     * finds more does not park, and with sixty-four calls in flight there is
+     * always more: the peer answers one batch while the reader works through
+     * the next. Counting from every refill, such a reader went on for
+     * milliseconds while the others on its carrier queued: at 64 x 64 on two
+     * carriers one turn in fifty ran longer than 0.25 ms, up to 14, those
+     * turns were 42 % of the carriers' time, and the p99 was 5-24 ms behind
+     * a p50 of 0.05. So the yield may come back to a read that parks; that
+     * costs a switch in thirty-two lines.
      */
-    if (!lineWaiting(peer)) {
-      pendingFlush(peer, &pending);
-      turn = 0;
-    } else if (turn >= TURN_LINES || pending.length >= TURN_BYTES) {
+    if (turn >= TURN_LINES || answered + pending.length >= TURN_BYTES) {
       pendingFlush(peer, &pending);
       meta_yield();
       turn = 0;
+      answered = 0;
+    } else if (!lineWaiting(peer)) {
+      answered += pending.length;
+      pendingFlush(peer, &pending);
     }
 
     text = peer.line(LONGEST);
