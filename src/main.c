@@ -1,5 +1,7 @@
 /**
- * mwm-node: one member of a MicroWizard mesh, membership and calls.
+ * mwm-node: one member of a MicroWizard mesh, membership and calls - as a
+ * function, mwm_nodeMain (node.h), so that a service of its own registers
+ * its handlers and then runs the node; src/mwm-node.c is the program.
  *
  *   mwm-node --pin 'role:cdn,cmd:*' [--pin 'role:cdn2,cmd:*'] [--listen-port 41000]
  *            [--echo cdn] [--events] [--client]
@@ -105,6 +107,7 @@
 #include "echo.h"
 #include "mesh.h"
 #include "msgpack.h"
+#include "node.h"
 #include "service.h"
 #include "swim.h"
 
@@ -1165,7 +1168,7 @@ static int openListen(node_t *node, int index) {
   return 1;
 }
 
-int main(int argc, char **argv) {
+int mwm_nodeMain(int argc, char **argv) {
 
   node_t node;
   long started = wallMs();

@@ -5,6 +5,8 @@
 # src/ are plain C, read as they are by both meta and the C compiler.
 #
 #   make                  build/mwm-node and the unit tests
+#   make lib              build/libmwm.a: the library and the node (node.h)
+#                         for a service of its own, linked with meta's runtime
 #   make check            the unit tests (test/run.sh runs everything)
 #   make META=/path/meta  against another meta
 #   make SAN=1            the same under ASan and UBSan, in build-san/
@@ -51,6 +53,9 @@ endif
 
 LIB := msgpack visigoth balance swim mesh pattern service echo client
 LIB_LOWERED := $(patsubst %,build/lowered/%.c,$(LIB))
+# the node itself (node.h): in mwm-node and in libmwm.a, not in the tests
+NODE := main
+NODE_LOWERED := $(patsubst %,build/lowered/%.c,$(NODE))
 TESTS := msgpack_test visigoth_test balance_test swim_test mesh_test pattern_test service_test \
          client_test
 
@@ -79,8 +84,21 @@ $(RT_OBJECTS): $(RT_SOURCES) $(wildcard $(RT_INCLUDE)/*.h)
 LINK = $(CC) -std=gnu11 $(CFLAGS) $(WARN) -I src -I $(RT_INCLUDE) -o $@ $^ \
        $(RT_ARCHIVE) -lm -lpthread
 
-$(B)/mwm-node: build/lowered/main.c $(LIB_LOWERED) $(RT_OBJECTS)
+$(B)/mwm-node: build/lowered/mwm-node.c $(NODE_LOWERED) $(LIB_LOWERED) $(RT_OBJECTS)
 	$(LINK)
+
+# The library for a service of its own: everything mwm-node is but its
+# main, as objects in one archive. The service links it with meta's runtime
+# - the same meta it is lowered with - and reads the headers in src/.
+$(B)/obj/%.o: build/lowered/%.c
+	@mkdir -p $(B)/obj
+	$(CC) -std=gnu11 $(CFLAGS) $(WARN) -I src -I $(RT_INCLUDE) -c $< -o $@
+
+$(B)/libmwm.a: $(patsubst %,$(B)/obj/%.o,$(LIB) $(NODE))
+	rm -f $@
+	ar rcs $@ $^
+
+lib: $(B)/libmwm.a
 
 $(B)/%_test: build/lowered/%_test.c $(LIB_LOWERED) $(RT_OBJECTS)
 	$(LINK)
@@ -96,4 +114,4 @@ check: $(patsubst %,$(B)/%,$(TESTS))
 clean:
 	rm -rf build build-san
 
-.PHONY: all check clean
+.PHONY: all lib check clean

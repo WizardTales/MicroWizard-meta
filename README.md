@@ -20,7 +20,8 @@ provider as fix/dead-pin).
 | `src/client.c` | the calling side: targets per pin, own handlers and remote pins in one tree, one ndjson connection per target, `mwm_act`/`mwm_actE` |
 | `src/service.c` | the serving side of calls: line in, handler by pattern, answer line out |
 | `src/echo.c` | the echo service of the tests, the same commands as `test/harness/echo.js` |
-| `src/main.c` | `mwm-node`: one listen per pin (UDP, SWIM, table, TCP), one `select` over sockets, signals and deadline, calls from stdin |
+| `src/main.c` | the node: one listen per pin (UDP, SWIM, table, TCP), one `select` over sockets, signals and deadline, calls from stdin - `mwm_nodeMain` in `src/node.h` |
+| `src/mwm-node.c` | `mwm-node`, which is `mwm_nodeMain` and nothing else |
 | `test/unit/` | unit tests in meta, against golden files from real Node nodes |
 | `test/harness/` | the reference in Node (microwizard 1.5.0, versions pinned): base, echo service, client, capture, comparisons |
 | `test/fixtures/` | the golden files; `docs/protocol.md` section 13 says where each comes from |
@@ -35,6 +36,24 @@ from metalanguage parser-rewrite 6b2b20e or later:
     META=../../metalanguage/meta ./build.sh      # build/mwm-node
     META=../../metalanguage/meta make check      # unit tests only
     META=../../metalanguage/meta make SAN=1 check   # with ASan and UBSan, in build-san/
+    META=../../metalanguage/meta make lib        # build/libmwm.a, for a service of its own
+
+### A service of its own
+
+`build/libmwm.a` is everything `mwm-node` is but its `main`. A service in
+meta adds its handlers (`src/service.h`) and hands its command line to the
+node (`src/node.h`), which then reads it as `mwm-node` would:
+
+    #include "node.h"
+    #include "service.h"
+
+    int main(int argc, char **argv) {
+      mwm_add("role:cdn,cmd:get", get);
+      return mwm_nodeMain(argc, argv);
+    }
+
+It is lowered with `-I src` and linked with `build/libmwm.a` and the runtime
+of the same meta, `-lm -lpthread`.
 
 Without `META` it takes `meta` from PATH, otherwise `../../metalanguage/meta`,
 and says so when that one lacks `meta_tcp.h`.
